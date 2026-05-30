@@ -1583,12 +1583,32 @@ let playTimer = null;
 const TITLE_DUR = 5500;
 const CLOSING_DUR = 6500;
 const PHOTO_DUR = 6000;
+// CJK (Chinese/Japanese/Korean) characters carry ~2x as much information per
+// glyph as Latin characters — weight them so a 40-char Chinese message gets
+// roughly the same reading time as an 80-char English message.
+function effectiveLength(text) {
+  let len = 0;
+  for (const ch of text) {
+    const code = ch.codePointAt(0);
+    if ((code >= 0x4E00 && code <= 0x9FFF) ||   // CJK Unified Ideographs
+        (code >= 0x3040 && code <= 0x30FF) ||   // Hiragana + Katakana
+        (code >= 0xAC00 && code <= 0xD7AF)) {   // Hangul Syllables
+      len += 2;
+    } else {
+      len += 1;
+    }
+  }
+  return len;
+}
+
 function msgDuration(m) {
-  const len = (m.body || '').length;
-  if (len < 60)  return 6500;
-  if (len < 160) return 8500;
-  if (len < 280) return 11000;
-  return 13500;
+  // Use whichever language the slide will actually display
+  const shown = (lang === 'cn' && m.body_zh) ? m.body_zh : (m.body || '');
+  const len = effectiveLength(shown);
+  if (len < 60)  return 6500;   // short  — quick read
+  if (len < 160) return 8500;   // medium
+  if (len < 280) return 11000;  // long
+  return 13500;                  // very long — generous reading time
 }
 
 function clearTm() { if (playTimer) { clearInterval(playTimer); playTimer = null; } }
