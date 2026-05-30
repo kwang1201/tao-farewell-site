@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Farewell, Tao — Promega Beijing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -23,11 +23,38 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--surface);
     color: var(--on-surface);
     overflow-x: hidden;
   }
+  /* Lang toggle pills (top-left) */
+  .lang-toggle {
+    position: fixed;
+    top: 24px; left: 24px;
+    z-index: 500;
+    display: flex;
+    background: rgba(19,41,75,0.85);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 50px;
+    padding: 4px;
+    box-shadow: 0 4px 16px rgba(19,41,75,0.25);
+  }
+  .lang-btn {
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    border: none;
+    padding: 7px 14px;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lang-btn.on { background: var(--sol); color: var(--deep-galaxy); }
+  .lang-btn:hover:not(.on) { color: #fff; }
 
   /* Floating top-right buttons */
   .topbar {
@@ -133,7 +160,7 @@
   }
 
   .memories-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Playfair Display', 'Noto Serif SC', serif;
     font-size: clamp(36px, 5vw, 60px);
     font-weight: 700;
     color: #fff;
@@ -316,15 +343,6 @@
   .photo-item:hover .photo-caption { opacity: 1; }
   .photo-caption-name { font-size: 13px; font-weight: 600; color: var(--sol); margin-bottom: 2px; }
   .photo-caption-text { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4; }
-  .photo-caption-zh {
-    font-size: 12px;
-    color: rgba(253,184,19,0.85);
-    line-height: 1.4;
-    margin-top: 3px;
-    padding-top: 3px;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'DM Sans', sans-serif;
-  }
   .photo-del {
     position: absolute;
     top: 10px; right: 10px;
@@ -407,7 +425,7 @@
     flex-wrap: wrap;
   }
   .story-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Playfair Display', 'Noto Serif SC', serif;
     font-size: clamp(34px, 4.5vw, 56px);
     font-weight: 700;
     color: var(--deep-galaxy);
@@ -530,20 +548,9 @@
     font-size: 15px;
     line-height: 1.75;
     color: var(--on-surface);
-    margin-bottom: 12px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .message-text-zh {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--still-water);
     margin-bottom: 24px;
-    padding-top: 12px;
-    border-top: 1px dashed rgba(69,93,160,0.18);
     white-space: pre-wrap;
     word-break: break-word;
-    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'DM Sans', sans-serif;
   }
   .message-author-row { display: flex; align-items: center; gap: 12px; }
   .message-avatar {
@@ -741,14 +748,6 @@
     max-width: 760px;
     margin: 0 auto;
   }
-  .slide-photo-caption .text-zh {
-    font-size: clamp(13px, 1.4vw, 18px);
-    color: rgba(253,184,19,0.85);
-    line-height: 1.5;
-    max-width: 760px;
-    margin: 8px auto 0;
-    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  }
 
   /* Message slide */
   .slide-msg-content {
@@ -768,31 +767,23 @@
     display: block;
   }
   .slide-msg-text {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Playfair Display', 'Noto Serif SC', serif;
     font-size: clamp(22px, 3.2vw, 44px);
     font-weight: 400;
     font-style: italic;
     color: #fff;
     line-height: 1.4;
-    margin-bottom: clamp(16px, 2vw, 24px);
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .slide-msg-text-zh {
-    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    font-size: clamp(18px, 2.4vw, 30px);
-    font-weight: 400;
-    color: var(--sol);
-    line-height: 1.55;
     margin-bottom: clamp(32px, 5vw, 56px);
-    padding-top: clamp(16px, 2vw, 24px);
-    border-top: 1px solid rgba(253,184,19,0.25);
-    max-width: 880px;
-    margin-left: auto;
-    margin-right: auto;
     white-space: pre-wrap;
     word-break: break-word;
   }
+  /* Chinese rendering: Playfair has no CJK glyphs, browser falls back to Noto Serif SC.
+     Tone down italic since CJK italic looks awkward */
+  body.lang-cn .slide-msg-text,
+  body.lang-cn .memories-title em,
+  body.lang-cn .story-title em,
+  body.lang-cn .slide-main em,
+  body.lang-cn .slide-photo-caption .name { font-style: normal; }
   .slide-msg-author {
     display: inline-flex;
     align-items: center;
@@ -898,10 +889,16 @@
 </head>
 <body>
 
+<!-- Floating top-left lang toggle -->
+<div class="lang-toggle">
+  <button class="lang-btn on" id="langEnBtn" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" id="langCnBtn" onclick="setLang('cn')">CN</button>
+</div>
+
 <!-- Floating top-right controls -->
 <div class="topbar">
   <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Background music">♪</button>
-  <button class="present-btn" onclick="startPresent()">Present</button>
+  <button class="present-btn" id="presentBtn" onclick="startPresent()">Present</button>
 </div>
 <audio id="bgmAudio" src="bgm.mp3" loop preload="none"></audio>
 
@@ -911,12 +908,12 @@
 
     <div class="memories-header">
       <div>
-        <span class="section-label" style="color: var(--sol); border-color: var(--sol);">Our Memories with Tao</span>
+        <span class="section-label" id="s1Label" style="color: var(--sol); border-color: var(--sol);">Our Memories with Tao</span>
         <h2 class="memories-title">
-          Moments We've<br><em>Shared Together</em>
+          <span id="s1Title1">Moments We've</span><br><em id="s1Title2">Shared Together</em>
         </h2>
       </div>
-      <p class="memories-subtitle">
+      <p class="memories-subtitle" id="s1Sub">
         Capture your moments with Tao Cui in photos. Whether it's from the cherished Spring GMM, the Madison Campus, or the ProCon Asia meeting with PacAsia colleagues… any photo that holds special memories is welcome. Let's create a gallery of memories together, featuring the Tao we all know and cherish.
       </p>
     </div>
@@ -925,14 +922,14 @@
       <div class="upload-icon">
         <svg viewBox="0 0 24 24"><path d="M20 5h-3.17l-1.24-1.35A2 2 0 0 0 14.12 3H9.88a2 2 0 0 0-1.47.65L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm-8 13a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
       </div>
-      <div class="upload-trigger-title">Upload a Photo</div>
-      <div class="upload-trigger-sub">Share photo(s) with Tao · JPG, PNG, GIF · Click to upload</div>
+      <div class="upload-trigger-title" id="s1UploadTitle">Upload a Photo</div>
+      <div class="upload-trigger-sub" id="s1UploadSub">Share photo(s) with Tao · JPG, PNG, GIF · Click to upload</div>
     </div>
 
     <div class="photo-grid" id="photoGrid">
       <div class="empty-state" id="photoEmpty">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="rgba(255,255,255,0.2)"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-        <p>Be the first to share a photo with Tao</p>
+        <p id="s1Empty">Be the first to share a photo with Tao</p>
       </div>
     </div>
 
@@ -942,10 +939,10 @@
 <!-- Photo upload modal (PBK20-style batch) -->
 <div class="caption-overlay" id="captionOverlay">
   <div class="caption-modal">
-    <h3>Upload Photo(s)</h3>
-    <p>Pick one or more photos, add your name and a short caption.</p>
+    <h3 id="pmTitle">Upload Photo(s)</h3>
+    <p id="pmSub">Pick one or more photos, add your name and a short caption.</p>
     <div class="form-field">
-      <label>Photo(s)</label>
+      <label id="pmPhotoLabel">Photo(s)</label>
       <div class="ph-zone" id="phZone">
         <input type="file" id="photoInput" accept="image/*" multiple>
         <div class="ph-zone-lbl" id="phZoneLbl">Click or drop photos here</div>
@@ -953,15 +950,15 @@
       <div class="ph-count" id="phCount"></div>
     </div>
     <div class="form-field">
-      <label>Your Name <span style="color:#c0392b">*</span></label>
+      <label id="pmNameLabel">Your Name <span style="color:#c0392b">*</span></label>
       <input type="text" id="captionName" placeholder="Your name" maxlength="60">
     </div>
     <div class="form-field">
-      <label>Caption (optional)</label>
+      <label id="pmCaptionLabel">Caption (optional)</label>
       <input type="text" id="captionText" placeholder="A short note about this moment with Tao..." maxlength="300">
     </div>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeCaptionModal()">Cancel</button>
+      <button class="btn-secondary" id="pmCancelBtn" onclick="closeCaptionModal()">Cancel</button>
       <button class="btn-primary" id="uploadBtn" onclick="confirmUpload()">Upload</button>
     </div>
   </div>
@@ -984,26 +981,26 @@
   <div class="container">
 
     <div class="story-header">
-      <span class="section-label">A Story We Write Together</span>
+      <span class="section-label" id="s2Label">A Story We Write Together</span>
       <div class="story-headline-row">
         <h2 class="story-title">
-          Words for Tao,<br><em>From All of Us</em>
+          <span id="s2Title1">Words for Tao,</span><br><em id="s2Title2">From All of Us</em>
         </h2>
-        <p class="story-meta">
+        <p class="story-meta" id="s2Sub">
           Tao Cui has led Promega Beijing since the 1990s with dedication and vision. Please share your memories of her, words of gratitude, or messages of support for her future endeavors.
         </p>
       </div>
     </div>
 
     <div class="compose-box">
-      <div class="compose-box-title">Leave a Message for Tao</div>
+      <div class="compose-box-title" id="composeTitle">Leave a Message for Tao</div>
       <input type="text" id="msgName" class="compose-input" placeholder="Your name (required)" maxlength="60">
       <textarea id="msgText" placeholder="A memory, a word of thanks, a wish for what comes next — write what's in your heart..." maxlength="500" oninput="updateCharCount()"></textarea>
       <div class="compose-footer">
         <span class="char-count" id="charCount">0 / 500</span>
         <button class="btn-post" id="postBtn" onclick="postMessage()">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          Post Message
+          <span id="postBtnLabel">Post Message</span>
         </button>
       </div>
     </div>
@@ -1011,7 +1008,7 @@
     <div class="messages-wall" id="messagesWall">
       <div class="messages-empty" id="msgEmpty">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="#ccc"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-        <p>Be the first to leave a message for Tao</p>
+        <p id="s2Empty">Be the first to leave a message for Tao</p>
       </div>
     </div>
 
@@ -1034,6 +1031,201 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ═════════════════════════════════════════════════════════════
+// I18N — EN (default) / CN
+// ═════════════════════════════════════════════════════════════
+const I18N = {
+  en: {
+    present: 'Present',
+    music: 'Background music',
+    s1Label: 'Our Memories with Tao',
+    s1Title1: "Moments We've",
+    s1Title2: 'Shared Together',
+    s1Sub: "Capture your moments with Tao Cui in photos. Whether it's from the cherished Spring GMM, the Madison Campus, or the ProCon Asia meeting with PacAsia colleagues… any photo that holds special memories is welcome. Let's create a gallery of memories together, featuring the Tao we all know and cherish.",
+    s1UploadTitle: 'Upload a Photo',
+    s1UploadSub: 'Share photo(s) with Tao · JPG, PNG, GIF · Click to upload',
+    s1Empty: 'Be the first to share a photo with Tao',
+    s2Label: 'A Story We Write Together',
+    s2Title1: 'Words for Tao,',
+    s2Title2: 'From All of Us',
+    s2Sub: 'Tao Cui has led Promega Beijing since the 1990s with dedication and vision. Please share your memories of her, words of gratitude, or messages of support for her future endeavors.',
+    composeTitle: 'Leave a Message for Tao',
+    msgNamePh: 'Your name (required)',
+    msgTextPh: "A memory, a word of thanks, a wish for what comes next — write what's in your heart...",
+    postBtn: 'Post Message',
+    postBtnLoading: 'Translating & posting...',
+    s2Empty: 'Be the first to leave a message for Tao',
+    pmTitle: 'Upload Photo(s)',
+    pmSub: 'Pick one or more photos, add your name and a short caption.',
+    pmPhotoLabel: 'Photo(s)',
+    pmZonePh: 'Click or drop photos here',
+    pmZoneChange: 'Click to change selection',
+    pmCount: n => `${n} photo${n>1?'s':''} selected`,
+    pmNameLabel: 'Your Name',
+    pmNamePh: 'Your name',
+    pmCaptionLabel: 'Caption (optional)',
+    pmCaptionPh: 'A short note about this moment with Tao...',
+    pmCancel: 'Cancel',
+    pmUpload: 'Upload',
+    pmUploading: 'Uploading...',
+    tPickPhoto: 'Please pick at least one photo',
+    tEnterName: 'Please enter your name',
+    tWriteMsg: 'Please write a message',
+    tTooLarge: name => `Skipping ${name}: too large (max 8 MB)`,
+    tUploaded: (n, failed) => `${n} photo${n>1?'s':''} uploaded${failed?` (${failed} failed)`:''}`,
+    tFailed: 'Upload failed',
+    tPosted: 'Your message has been posted',
+    tPhotoRemoved: 'Photo removed',
+    tMsgRemoved: 'Message removed',
+    tMusicPlay: '♪ Music playing',
+    tMusicPause: 'Music paused',
+    tMusicBlocked: 'Browser blocked autoplay — click ♪ again',
+    cRemovePhoto: 'Remove this photo?',
+    cRemoveMsg: 'Remove this message?',
+    pTitleLabel: 'Promega Beijing',
+    pTitle1: 'Farewell,',
+    pTitle2: 'Tao Cui.',
+    pTitleSub: 'A celebration of memories · 2026',
+    pClosingLabel: 'From All of Us',
+    pClosing1: 'Thank You,',
+    pClosing2: 'Tao.',
+    pClosingSub: 'Wishing you the very best — Promega Beijing',
+  },
+  cn: {
+    present: '播放',
+    music: '背景音乐',
+    s1Label: '我们与 Tao 的回忆',
+    s1Title1: '我们',
+    s1Title2: '共度的时光',
+    s1Sub: '用照片留住与 Tao Cui 共度的每一个瞬间。无论是难忘的春季 GMM、Madison 总部之行,还是与 PacAsia 同事一起参加的 ProCon Asia 会议……任何承载着特别记忆的照片都欢迎上传。让我们一起拼出一本属于 Tao 的回忆相册。',
+    s1UploadTitle: '上传照片',
+    s1UploadSub: '与 Tao 分享照片 · JPG、PNG、GIF · 点击上传',
+    s1Empty: '成为第一个为 Tao 上传照片的人吧',
+    s2Label: '我们共同书写的故事',
+    s2Title1: '献给 Tao 的话,',
+    s2Title2: '来自我们每一个人',
+    s2Sub: 'Tao Cui 自上世纪 90 年代起带领 Promega Beijing 走到今天,以坚定与远见铸就了团队。请在此分享您的回忆、感谢之情,或对她未来旅程的祝福。',
+    composeTitle: '给 Tao 留言',
+    msgNamePh: '您的姓名(必填)',
+    msgTextPh: '一段回忆、一句感谢、一份祝福——把心里话写下来吧……',
+    postBtn: '发布留言',
+    postBtnLoading: '翻译并发布中…',
+    s2Empty: '成为第一个为 Tao 留言的人吧',
+    pmTitle: '上传照片',
+    pmSub: '选择一张或多张照片,留下您的姓名和简短说明。',
+    pmPhotoLabel: '照片',
+    pmZonePh: '点击或拖放照片到这里',
+    pmZoneChange: '点击重新选择',
+    pmCount: n => `已选择 ${n} 张照片`,
+    pmNameLabel: '您的姓名',
+    pmNamePh: '您的姓名',
+    pmCaptionLabel: '说明(可选)',
+    pmCaptionPh: '关于这张与 Tao 合影的简短说明……',
+    pmCancel: '取消',
+    pmUpload: '上传',
+    pmUploading: '上传中…',
+    tPickPhoto: '请至少选择一张照片',
+    tEnterName: '请输入您的姓名',
+    tWriteMsg: '请写一些内容',
+    tTooLarge: name => `跳过 ${name}:文件过大(最大 8 MB)`,
+    tUploaded: (n, failed) => `已上传 ${n} 张照片${failed?`(${failed} 张失败)`:''}`,
+    tFailed: '上传失败',
+    tPosted: '您的留言已发布',
+    tPhotoRemoved: '照片已删除',
+    tMsgRemoved: '留言已删除',
+    tMusicPlay: '♪ 音乐播放中',
+    tMusicPause: '音乐已暂停',
+    tMusicBlocked: '浏览器阻止自动播放——请再次点击 ♪',
+    cRemovePhoto: '确定删除这张照片吗?',
+    cRemoveMsg: '确定删除这条留言吗?',
+    pTitleLabel: 'Promega Beijing',
+    pTitle1: '再见,',
+    pTitle2: 'Tao Cui。',
+    pTitleSub: '记忆的庆典 · 2026',
+    pClosingLabel: '来自我们每一个人',
+    pClosing1: '谢谢您,',
+    pClosing2: 'Tao。',
+    pClosingSub: '祝您一切顺利——Promega Beijing 全体同仁',
+  }
+};
+
+let lang = 'en';
+function t(key, ...args) {
+  const v = I18N[lang][key];
+  return typeof v === 'function' ? v(...args) : (v || I18N.en[key] || '');
+}
+
+function applyLang() {
+  document.body.classList.toggle('lang-cn', lang === 'cn');
+  document.body.classList.toggle('lang-en', lang === 'en');
+  // Static text
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  set('s1Label', t('s1Label'));
+  set('s1Title1', t('s1Title1'));
+  set('s1Title2', t('s1Title2'));
+  set('s1Sub', t('s1Sub'));
+  set('s1UploadTitle', t('s1UploadTitle'));
+  set('s1UploadSub', t('s1UploadSub'));
+  set('s1Empty', t('s1Empty'));
+  set('s2Label', t('s2Label'));
+  set('s2Title1', t('s2Title1'));
+  set('s2Title2', t('s2Title2'));
+  set('s2Sub', t('s2Sub'));
+  set('composeTitle', t('composeTitle'));
+  set('postBtnLabel', t('postBtn'));
+  set('s2Empty', t('s2Empty'));
+  set('pmTitle', t('pmTitle'));
+  set('pmSub', t('pmSub'));
+  set('pmCancelBtn', t('pmCancel'));
+  set('presentBtn', t('present'));
+  // Placeholders
+  const setPh = (id, text) => { const el = document.getElementById(id); if (el) el.placeholder = text; };
+  setPh('msgName', t('msgNamePh'));
+  setPh('msgText', t('msgTextPh'));
+  setPh('captionName', t('pmNamePh'));
+  setPh('captionText', t('pmCaptionPh'));
+  // Form labels (preserve required asterisk)
+  const pmPhotoLbl = document.getElementById('pmPhotoLabel');
+  if (pmPhotoLbl) pmPhotoLbl.textContent = t('pmPhotoLabel');
+  const pmNameLbl = document.getElementById('pmNameLabel');
+  if (pmNameLbl) pmNameLbl.innerHTML = `${escapeHtml(t('pmNameLabel'))} <span style="color:#c0392b">*</span>`;
+  const pmCapLbl = document.getElementById('pmCaptionLabel');
+  if (pmCapLbl) pmCapLbl.textContent = t('pmCaptionLabel');
+  // Upload button label preserves disabled state
+  const upBtn = document.getElementById('uploadBtn');
+  if (upBtn && !upBtn.disabled) upBtn.textContent = t('pmUpload');
+  // Music button title
+  const musicBtn = document.getElementById('musicBtn');
+  if (musicBtn) musicBtn.title = t('music');
+  // Photo zone label — only update if not showing "change selection"
+  const zoneLbl = document.getElementById('phZoneLbl');
+  if (zoneLbl) {
+    zoneLbl.textContent = (pendingFiles && pendingFiles.length) ? t('pmZoneChange') : t('pmZonePh');
+  }
+  // Photo count
+  const cnt = document.getElementById('phCount');
+  if (cnt && pendingFiles && pendingFiles.length) cnt.textContent = t('pmCount', pendingFiles.length);
+  // Lang button states
+  document.getElementById('langEnBtn').classList.toggle('on', lang === 'en');
+  document.getElementById('langCnBtn').classList.toggle('on', lang === 'cn');
+}
+
+function setLang(newLang) {
+  if (newLang !== 'en' && newLang !== 'cn') return;
+  lang = newLang;
+  try { localStorage.setItem('tao-lang', lang); } catch(e) {}
+  applyLang();
+  renderPhotos();
+  renderMessages();
+}
+
+function initLang() {
+  let saved = 'en';
+  try { saved = localStorage.getItem('tao-lang') || 'en'; } catch(e) {}
+  lang = (saved === 'cn') ? 'cn' : 'en';
+  applyLang();
+}
+
 // ═════════════════════════════════════════════════════════════
 // SUPABASE CLIENT
 // ═════════════════════════════════════════════════════════════
@@ -1103,13 +1295,12 @@ function renderPhotos() {
   photos.forEach(p => {
     const item = document.createElement('div');
     item.className = 'photo-item';
-    const zhDifferent = p.caption_zh && p.caption_zh !== p.caption;
+    const displayCaption = (lang === 'cn' && p.caption_zh) ? p.caption_zh : (p.caption || '');
     item.innerHTML = `
-      <img src="${p.image_url}" alt="${escapeHtml(p.caption || '')}" loading="lazy">
+      <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}" loading="lazy">
       <div class="photo-caption">
         <div class="photo-caption-name">${escapeHtml(p.name || '')}</div>
-        ${p.caption ? `<div class="photo-caption-text">${escapeHtml(p.caption)}</div>` : ''}
-        ${zhDifferent ? `<div class="photo-caption-zh">${escapeHtml(p.caption_zh)}</div>` : ''}
+        ${displayCaption ? `<div class="photo-caption-text">${escapeHtml(displayCaption)}</div>` : ''}
       </div>
       <button class="photo-del" title="Delete" data-id="${p.id}">✕</button>
     `;
@@ -1128,23 +1319,23 @@ function openPhotoModal() {
   document.getElementById('captionText').value = '';
   document.getElementById('photoInput').value = '';
   document.getElementById('phCount').textContent = '';
-  document.getElementById('phZoneLbl').textContent = 'Click or drop photos here';
+  document.getElementById('phZoneLbl').textContent = t('pmZonePh');
   document.getElementById('captionOverlay').classList.add('active');
 }
 
 function setPendingFiles(files) {
   pendingFiles = files.filter(f => {
     if (!f.type.startsWith('image/')) return false;
-    if (f.size > 8 * 1024 * 1024) { showToast(`Skipping ${f.name}: too large (max 8 MB)`, true); return false; }
+    if (f.size > 8 * 1024 * 1024) { showToast(t('tTooLarge', f.name), true); return false; }
     return true;
   });
   const cnt = document.getElementById('phCount');
   if (pendingFiles.length) {
-    cnt.textContent = `${pendingFiles.length} photo${pendingFiles.length>1?'s':''} selected`;
-    document.getElementById('phZoneLbl').textContent = 'Click to change selection';
+    cnt.textContent = t('pmCount', pendingFiles.length);
+    document.getElementById('phZoneLbl').textContent = t('pmZoneChange');
   } else {
     cnt.textContent = '';
-    document.getElementById('phZoneLbl').textContent = 'Click or drop photos here';
+    document.getElementById('phZoneLbl').textContent = t('pmZonePh');
   }
 }
 
@@ -1169,12 +1360,12 @@ function closeCaptionModal() {
 async function confirmUpload() {
   const name = document.getElementById('captionName').value.trim();
   const caption = document.getElementById('captionText').value.trim();
-  if (!pendingFiles.length) { showToast('Please pick at least one photo', true); return; }
-  if (!name) { showToast('Please enter your name', true); document.getElementById('captionName').focus(); return; }
+  if (!pendingFiles.length) { showToast(t('tPickPhoto'), true); return; }
+  if (!name) { showToast(t('tEnterName'), true); document.getElementById('captionName').focus(); return; }
 
   const btn = document.getElementById('uploadBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>  Uploading...';
+  btn.innerHTML = `<span class="spinner"></span>  ${escapeHtml(t('pmUploading'))}`;
 
   // Translate caption once (shared across the batch)
   const captionZh = caption ? await translateToZh(caption) : '';
@@ -1205,20 +1396,20 @@ async function confirmUpload() {
   }
 
   btn.disabled = false;
-  btn.textContent = 'Upload';
+  btn.textContent = t('pmUpload');
 
   if (success) {
     await loadPhotos();
     document.getElementById('captionOverlay').classList.remove('active');
     pendingFiles = [];
-    showToast(`${success} photo${success>1?'s':''} uploaded${failed?` (${failed} failed)`:''}`);
+    showToast(t('tUploaded', success, failed));
   } else {
-    showToast('Upload failed', true);
+    showToast(t('tFailed'), true);
   }
 }
 
 async function deletePhoto(p) {
-  if (!confirm('Remove this photo?')) return;
+  if (!confirm(t('cRemovePhoto'))) return;
   try {
     if (p.storage_path) {
       await sb.storage.from(PHOTO_BUCKET).remove([p.storage_path]);
@@ -1226,10 +1417,10 @@ async function deletePhoto(p) {
     const { error } = await sb.from('tao_photos').delete().eq('id', p.id);
     if (error) throw error;
     await loadPhotos();
-    showToast('Photo removed');
+    showToast(t('tPhotoRemoved'));
   } catch (err) {
     console.error('deletePhoto', err);
-    showToast('Could not remove photo', true);
+    showToast(t('tFailed'), true);
   }
 }
 
@@ -1272,16 +1463,16 @@ function renderMessages() {
   }
   empty.style.display = 'none';
 
+  const dateLocale = lang === 'cn' ? 'zh-CN' : 'en-US';
   messages.forEach((m, idx) => {
     const card = document.createElement('div');
     card.className = 'message-card' + (idx === 0 ? ' featured' : '');
     const initials = (m.name || '?').charAt(0).toUpperCase();
-    const date = new Date(m.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-    const zhDifferent = m.body_zh && m.body_zh !== m.body;
+    const date = new Date(m.created_at).toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' });
+    const displayBody = (lang === 'cn' && m.body_zh) ? m.body_zh : m.body;
     card.innerHTML = `
       <span class="message-quote-icon">"</span>
-      <p class="message-text">${escapeHtml(m.body)}</p>
-      ${zhDifferent ? `<p class="message-text-zh">${escapeHtml(m.body_zh)}</p>` : ''}
+      <p class="message-text">${escapeHtml(displayBody)}</p>
       <div class="message-author-row">
         <div class="message-avatar">${escapeHtml(initials)}</div>
         <div class="message-author-info">
@@ -1305,13 +1496,13 @@ async function postMessage() {
   const name = document.getElementById('msgName').value.trim();
   const text = document.getElementById('msgText').value.trim();
 
-  if (!name) { showToast('Please enter your name', true); document.getElementById('msgName').focus(); return; }
-  if (!text) { showToast('Please write a message', true); document.getElementById('msgText').focus(); return; }
+  if (!name) { showToast(t('tEnterName'), true); document.getElementById('msgName').focus(); return; }
+  if (!text) { showToast(t('tWriteMsg'), true); document.getElementById('msgText').focus(); return; }
 
   const btn = document.getElementById('postBtn');
   btn.disabled = true;
   const orig = btn.innerHTML;
-  btn.innerHTML = '<span class="spinner"></span>  Translating & posting...';
+  btn.innerHTML = `<span class="spinner"></span>  ${escapeHtml(t('postBtnLoading'))}`;
 
   try {
     const body_zh = await translateToZh(text);
@@ -1321,11 +1512,11 @@ async function postMessage() {
     document.getElementById('msgName').value = '';
     document.getElementById('msgText').value = '';
     updateCharCount();
-    showToast('Your message has been posted');
+    showToast(t('tPosted'));
     document.getElementById('messagesWall').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
     console.error('postMessage', err);
-    showToast('Could not post message', true);
+    showToast(t('tFailed'), true);
   } finally {
     btn.disabled = false;
     btn.innerHTML = orig;
@@ -1333,15 +1524,15 @@ async function postMessage() {
 }
 
 async function deleteMessage(m) {
-  if (!confirm('Remove this message?')) return;
+  if (!confirm(t('cRemoveMsg'))) return;
   try {
     const { error } = await sb.from('tao_messages').delete().eq('id', m.id);
     if (error) throw error;
     await loadMessages();
-    showToast('Message removed');
+    showToast(t('tMsgRemoved'));
   } catch (err) {
     console.error('deleteMessage', err);
-    showToast('Could not remove message', true);
+    showToast(t('tFailed'), true);
   }
 }
 
@@ -1398,34 +1589,33 @@ function buildSlides() {
       div.classList.add('slide-galaxy');
       div.innerHTML = `
         <div class="slide-content">
-          <div class="slide-label">Promega Beijing</div>
-          <div class="slide-main">Farewell,<br><em>Tao Cui.</em></div>
-          <div class="slide-sub">A celebration of memories · 2026</div>
+          <div class="slide-label">${escapeHtml(t('pTitleLabel'))}</div>
+          <div class="slide-main">${escapeHtml(t('pTitle1'))}<br><em>${escapeHtml(t('pTitle2'))}</em></div>
+          <div class="slide-sub">${escapeHtml(t('pTitleSub'))}</div>
         </div>`;
     } else if (s.type === 'photo') {
       const p = s.data;
-      const zhDifferent = p.caption_zh && p.caption_zh !== p.caption;
+      const displayCaption = (lang === 'cn' && p.caption_zh) ? p.caption_zh : (p.caption || '');
       div.innerHTML = `
         <div class="slide-photo-bg" style="background-image:url('${p.image_url}')"></div>
         <div class="slide-photo-frame">
-          <img src="${p.image_url}" alt="${escapeHtml(p.caption || '')}">
+          <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}">
         </div>
         <div class="slide-photo-caption">
           <div class="name">${escapeHtml(p.name || '')}</div>
-          ${p.caption ? `<div class="text">${escapeHtml(p.caption)}</div>` : ''}
-          ${zhDifferent ? `<div class="text-zh">${escapeHtml(p.caption_zh)}</div>` : ''}
+          ${displayCaption ? `<div class="text">${escapeHtml(displayCaption)}</div>` : ''}
         </div>`;
     } else if (s.type === 'message') {
       const m = s.data;
       div.classList.add('slide-galaxy');
       const initials = (m.name || '?').charAt(0).toUpperCase();
-      const date = new Date(m.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      const zhDifferent = m.body_zh && m.body_zh !== m.body;
+      const dateLocale = lang === 'cn' ? 'zh-CN' : 'en-US';
+      const date = new Date(m.created_at).toLocaleDateString(dateLocale, { month: 'long', day: 'numeric', year: 'numeric' });
+      const displayBody = (lang === 'cn' && m.body_zh) ? m.body_zh : m.body;
       div.innerHTML = `
         <div class="slide-msg-content">
           <span class="slide-msg-quote">"</span>
-          <div class="slide-msg-text">${escapeHtml(m.body)}</div>
-          ${zhDifferent ? `<div class="slide-msg-text-zh">${escapeHtml(m.body_zh)}</div>` : ''}
+          <div class="slide-msg-text">${escapeHtml(displayBody)}</div>
           <div class="slide-msg-author">
             <div class="slide-msg-avatar">${escapeHtml(initials)}</div>
             <div>
@@ -1438,9 +1628,9 @@ function buildSlides() {
       div.classList.add('slide-galaxy');
       div.innerHTML = `
         <div class="slide-content">
-          <div class="slide-label">From All of Us</div>
-          <div class="slide-main">Thank You,<br><em>Tao.</em></div>
-          <div class="slide-sub">Wishing you the very best — Promega Beijing</div>
+          <div class="slide-label">${escapeHtml(t('pClosingLabel'))}</div>
+          <div class="slide-main">${escapeHtml(t('pClosing1'))}<br><em>${escapeHtml(t('pClosing2'))}</em></div>
+          <div class="slide-sub">${escapeHtml(t('pClosingSub'))}</div>
         </div>`;
     }
     stage.appendChild(div);
@@ -1512,9 +1702,9 @@ function toggleMusic() {
       isMusicOn = true;
       btn.classList.add('on');
       fadeMusic(0.35, 1500);
-      showToast('♪ Music playing');
+      showToast(t('tMusicPlay'));
     }).catch(() => {
-      showToast('Browser blocked autoplay — click ♪ again', true);
+      showToast(t('tMusicBlocked'), true);
     });
   } else {
     fadeMusic(0, 1000, () => {
@@ -1522,7 +1712,7 @@ function toggleMusic() {
       isMusicOn = false;
       btn.classList.remove('on');
     });
-    showToast('Music paused');
+    showToast(t('tMusicPause'));
   }
 }
 
@@ -1589,6 +1779,7 @@ document.addEventListener('keydown', e => {
 // INIT
 // ═════════════════════════════════════════════════════════════
 (async function() {
+  initLang();
   await Promise.all([loadPhotos(), loadMessages()]);
 })();
 </script>
