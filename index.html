@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Farewell, Tao — Promega Beijing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -316,6 +316,15 @@
   .photo-item:hover .photo-caption { opacity: 1; }
   .photo-caption-name { font-size: 13px; font-weight: 600; color: var(--sol); margin-bottom: 2px; }
   .photo-caption-text { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4; }
+  .photo-caption-zh {
+    font-size: 12px;
+    color: rgba(253,184,19,0.85);
+    line-height: 1.4;
+    margin-top: 3px;
+    padding-top: 3px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'DM Sans', sans-serif;
+  }
   .photo-del {
     position: absolute;
     top: 10px; right: 10px;
@@ -521,9 +530,20 @@
     font-size: 15px;
     line-height: 1.75;
     color: var(--on-surface);
-    margin-bottom: 24px;
+    margin-bottom: 12px;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+  .message-text-zh {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--still-water);
+    margin-bottom: 24px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(69,93,160,0.18);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'DM Sans', sans-serif;
   }
   .message-author-row { display: flex; align-items: center; gap: 12px; }
   .message-avatar {
@@ -721,6 +741,14 @@
     max-width: 760px;
     margin: 0 auto;
   }
+  .slide-photo-caption .text-zh {
+    font-size: clamp(13px, 1.4vw, 18px);
+    color: rgba(253,184,19,0.85);
+    line-height: 1.5;
+    max-width: 760px;
+    margin: 8px auto 0;
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
 
   /* Message slide */
   .slide-msg-content {
@@ -746,7 +774,22 @@
     font-style: italic;
     color: #fff;
     line-height: 1.4;
+    margin-bottom: clamp(16px, 2vw, 24px);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .slide-msg-text-zh {
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size: clamp(18px, 2.4vw, 30px);
+    font-weight: 400;
+    color: var(--sol);
+    line-height: 1.55;
     margin-bottom: clamp(32px, 5vw, 56px);
+    padding-top: clamp(16px, 2vw, 24px);
+    border-top: 1px solid rgba(253,184,19,0.25);
+    max-width: 880px;
+    margin-left: auto;
+    margin-right: auto;
     white-space: pre-wrap;
     word-break: break-word;
   }
@@ -1005,6 +1048,27 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 // ═════════════════════════════════════════════════════════════
+// TRANSLATION (KO/EN → ZH via Vercel serverless /api/translate)
+// ═════════════════════════════════════════════════════════════
+async function translateToZh(text) {
+  if (!text || !text.trim()) return '';
+  try {
+    const r = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text.trim() })
+    });
+    if (!r.ok) return '';
+    const data = await r.json();
+    // If detected ZH, server returns same text; if KO/EN, returns translation
+    return (data.zh || '').trim();
+  } catch (e) {
+    console.warn('translate failed', e);
+    return '';
+  }
+}
+
+// ═════════════════════════════════════════════════════════════
 // PHOTOS — PBK20-style batch upload
 // ═════════════════════════════════════════════════════════════
 let pendingFiles = [];
@@ -1039,11 +1103,13 @@ function renderPhotos() {
   photos.forEach(p => {
     const item = document.createElement('div');
     item.className = 'photo-item';
+    const zhDifferent = p.caption_zh && p.caption_zh !== p.caption;
     item.innerHTML = `
       <img src="${p.image_url}" alt="${escapeHtml(p.caption || '')}" loading="lazy">
       <div class="photo-caption">
         <div class="photo-caption-name">${escapeHtml(p.name || '')}</div>
         ${p.caption ? `<div class="photo-caption-text">${escapeHtml(p.caption)}</div>` : ''}
+        ${zhDifferent ? `<div class="photo-caption-zh">${escapeHtml(p.caption_zh)}</div>` : ''}
       </div>
       <button class="photo-del" title="Delete" data-id="${p.id}">✕</button>
     `;
@@ -1110,6 +1176,9 @@ async function confirmUpload() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>  Uploading...';
 
+  // Translate caption once (shared across the batch)
+  const captionZh = caption ? await translateToZh(caption) : '';
+
   let success = 0, failed = 0;
   for (const file of pendingFiles) {
     try {
@@ -1121,7 +1190,11 @@ async function confirmUpload() {
       if (upErr) throw upErr;
       const { data: urlData } = sb.storage.from(PHOTO_BUCKET).getPublicUrl(fileName);
       const { error: insErr } = await sb.from('tao_photos').insert({
-        name, caption: caption || null, image_url: urlData.publicUrl, storage_path: fileName
+        name,
+        caption: caption || null,
+        caption_zh: captionZh || null,
+        image_url: urlData.publicUrl,
+        storage_path: fileName
       });
       if (insErr) throw insErr;
       success++;
@@ -1204,9 +1277,11 @@ function renderMessages() {
     card.className = 'message-card' + (idx === 0 ? ' featured' : '');
     const initials = (m.name || '?').charAt(0).toUpperCase();
     const date = new Date(m.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const zhDifferent = m.body_zh && m.body_zh !== m.body;
     card.innerHTML = `
       <span class="message-quote-icon">"</span>
       <p class="message-text">${escapeHtml(m.body)}</p>
+      ${zhDifferent ? `<p class="message-text-zh">${escapeHtml(m.body_zh)}</p>` : ''}
       <div class="message-author-row">
         <div class="message-avatar">${escapeHtml(initials)}</div>
         <div class="message-author-info">
@@ -1236,10 +1311,11 @@ async function postMessage() {
   const btn = document.getElementById('postBtn');
   btn.disabled = true;
   const orig = btn.innerHTML;
-  btn.innerHTML = '<span class="spinner"></span>  Posting...';
+  btn.innerHTML = '<span class="spinner"></span>  Translating & posting...';
 
   try {
-    const { error } = await sb.from('tao_messages').insert({ name, body: text });
+    const body_zh = await translateToZh(text);
+    const { error } = await sb.from('tao_messages').insert({ name, body: text, body_zh: body_zh || null });
     if (error) throw error;
     await loadMessages();
     document.getElementById('msgName').value = '';
@@ -1328,6 +1404,7 @@ function buildSlides() {
         </div>`;
     } else if (s.type === 'photo') {
       const p = s.data;
+      const zhDifferent = p.caption_zh && p.caption_zh !== p.caption;
       div.innerHTML = `
         <div class="slide-photo-bg" style="background-image:url('${p.image_url}')"></div>
         <div class="slide-photo-frame">
@@ -1336,16 +1413,19 @@ function buildSlides() {
         <div class="slide-photo-caption">
           <div class="name">${escapeHtml(p.name || '')}</div>
           ${p.caption ? `<div class="text">${escapeHtml(p.caption)}</div>` : ''}
+          ${zhDifferent ? `<div class="text-zh">${escapeHtml(p.caption_zh)}</div>` : ''}
         </div>`;
     } else if (s.type === 'message') {
       const m = s.data;
       div.classList.add('slide-galaxy');
       const initials = (m.name || '?').charAt(0).toUpperCase();
       const date = new Date(m.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const zhDifferent = m.body_zh && m.body_zh !== m.body;
       div.innerHTML = `
         <div class="slide-msg-content">
           <span class="slide-msg-quote">"</span>
           <div class="slide-msg-text">${escapeHtml(m.body)}</div>
+          ${zhDifferent ? `<div class="slide-msg-text-zh">${escapeHtml(m.body_zh)}</div>` : ''}
           <div class="slide-msg-author">
             <div class="slide-msg-avatar">${escapeHtml(initials)}</div>
             <div>
