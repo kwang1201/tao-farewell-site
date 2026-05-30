@@ -173,7 +173,7 @@
   .caption-modal {
     background: var(--surface);
     border-radius: 20px;
-    padding: 40px;
+    padding: 28px;
     width: 480px;
     max-width: 92vw;
     max-height: 92vh;
@@ -182,27 +182,27 @@
   }
   .caption-modal h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 24px;
-    margin-bottom: 8px;
+    font-size: 22px;
+    margin-bottom: 4px;
     color: var(--deep-galaxy);
   }
-  .caption-modal p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+  .caption-modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
   .preview-thumb {
     width: 100%;
-    height: 200px;
+    height: 120px;
     object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    margin-top: 4px;
   }
-  .form-field { margin-bottom: 16px; }
+  .form-field { margin-bottom: 12px; }
   .form-field label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .form-field input,
   .form-field textarea {
@@ -220,7 +220,7 @@
   .form-field input:focus,
   .form-field textarea:focus { outline: none; border-color: var(--still-water); background: #fff; }
 
-  .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+  .modal-actions { display: flex; gap: 12px; margin-top: 16px; }
   .btn-primary {
     flex: 1;
     padding: 14px;
@@ -857,16 +857,16 @@
 <div class="caption-overlay" id="captionOverlay">
   <div class="caption-modal">
     <h3>Add Your Photo</h3>
-    <p>Add your name and a short note about this moment with Tao</p>
-    <img id="captionPreview" class="preview-thumb" src="" alt="preview">
+    <p>Tell us who you are and share a moment with Tao</p>
     <div class="form-field">
       <label>Your Name <span style="color:#c0392b">*</span></label>
       <input type="text" id="captionName" placeholder="Your name" maxlength="60">
     </div>
     <div class="form-field">
       <label>Caption (optional)</label>
-      <textarea id="captionText" placeholder="Tell us about this moment with Tao..." rows="3" style="min-height: 80px;" maxlength="300"></textarea>
+      <textarea id="captionText" placeholder="Tell us about this moment with Tao..." rows="3" style="min-height: 60px;" maxlength="300"></textarea>
     </div>
+    <img id="captionPreview" class="preview-thumb" src="" alt="preview">
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeCaptionModal()">Cancel</button>
       <button class="btn-primary" id="uploadBtn" onclick="confirmUpload()">Upload</button>
