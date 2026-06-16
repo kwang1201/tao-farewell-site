@@ -780,10 +780,14 @@
   /* Message slide */
   .slide-msg-content {
     text-align: center;
-    padding: clamp(24px, 4vw, 64px);
+    padding: clamp(20px, 3vw, 48px);
     z-index: 2;
     position: relative;
-    max-width: min(960px, 88vw);
+    max-width: min(1000px, 90vw);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .slide-msg-quote {
     font-family: 'Playfair Display', serif;
@@ -804,6 +808,41 @@
     margin-bottom: clamp(32px, 5vw, 56px);
     white-space: pre-wrap;
     word-break: break-word;
+  }
+  /* Length-based scaling so long messages fit on one slide */
+  .slide-msg-len-med .slide-msg-text {
+    font-size: clamp(19px, 2.6vw, 34px);
+    line-height: 1.38;
+    margin-bottom: clamp(24px, 3.5vw, 40px);
+  }
+  .slide-msg-len-long .slide-msg-text {
+    font-size: clamp(16px, 2vw, 26px);
+    line-height: 1.35;
+    margin-bottom: clamp(20px, 3vw, 32px);
+  }
+  .slide-msg-len-xlong .slide-msg-text {
+    font-size: clamp(13px, 1.5vw, 20px);
+    line-height: 1.32;
+    margin-bottom: clamp(16px, 2.4vw, 26px);
+  }
+  .slide-msg-len-long .slide-msg-quote,
+  .slide-msg-len-xlong .slide-msg-quote {
+    font-size: clamp(70px, 10vw, 130px);
+    margin-bottom: clamp(4px, 0.8vw, 10px);
+  }
+  .slide-msg-len-long .slide-msg-avatar,
+  .slide-msg-len-xlong .slide-msg-avatar {
+    width: clamp(32px, 3vw, 42px);
+    height: clamp(32px, 3vw, 42px);
+    font-size: clamp(14px, 1.4vw, 18px);
+  }
+  .slide-msg-len-long .slide-msg-name,
+  .slide-msg-len-xlong .slide-msg-name {
+    font-size: clamp(12px, 1.2vw, 16px);
+  }
+  .slide-msg-len-long .slide-msg-date,
+  .slide-msg-len-xlong .slide-msg-date {
+    font-size: clamp(10px, 0.9vw, 12px);
   }
   /* Chinese rendering: Playfair has no CJK glyphs, browser falls back to Noto Serif SC.
      Tone down italic since CJK italic looks awkward */
@@ -1857,6 +1896,10 @@ function buildSlides() {
       const dateLocale = lang === 'cn' ? 'zh-CN' : 'en-US';
       const date = new Date(m.created_at).toLocaleDateString(dateLocale, { month: 'long', day: 'numeric', year: 'numeric' });
       const displayBody = (lang === 'cn' && m.body_zh) ? m.body_zh : m.body;
+      const bodyLen = effectiveLength(displayBody || '');
+      if (bodyLen >= 280) div.classList.add('slide-msg-len-xlong');
+      else if (bodyLen >= 160) div.classList.add('slide-msg-len-long');
+      else if (bodyLen >= 60) div.classList.add('slide-msg-len-med');
       div.innerHTML = `
         <div class="slide-msg-content">
           <span class="slide-msg-quote">"</span>
