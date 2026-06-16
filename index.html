@@ -737,14 +737,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(18px, 2.4vh, 32px);
+    gap: clamp(14px, 2vh, 24px);
     max-width: min(82vw, 1100px);
     padding: 0 24px;
   }
   .slide-photo-frame {
     position: relative;
     max-width: 100%;
-    max-height: 64vh;
+    max-height: 62vh;
     box-shadow: 0 24px 80px rgba(0,0,0,0.6);
     border-radius: 12px;
     overflow: hidden;
@@ -752,28 +752,29 @@
   .slide-photo-frame img {
     display: block;
     max-width: 100%;
-    max-height: 64vh;
+    max-height: 62vh;
     object-fit: contain;
   }
-  .slide-photo-caption {
-    position: relative;
+  .slide-caption-text {
+    font-family: 'Playfair Display', 'Noto Serif SC', serif;
+    font-style: italic;
+    font-size: clamp(16px, 1.9vw, 24px);
+    color: rgba(255,255,255,0.92);
+    line-height: 1.45;
     text-align: center;
     max-width: 760px;
   }
-  .slide-photo-caption .name {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(20px, 2.6vw, 32px);
+  body.lang-cn .slide-caption-text { font-style: normal; }
+  .slide-caption-name {
+    font-family: 'Playfair Display', 'Noto Serif SC', serif;
+    font-style: italic;
+    font-size: clamp(15px, 1.6vw, 22px);
     font-weight: 700;
     color: var(--sol);
-    font-style: italic;
-    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+    text-align: center;
   }
-  .slide-photo-caption .text {
-    font-size: clamp(14px, 1.5vw, 20px);
-    color: rgba(255,255,255,0.85);
-    line-height: 1.5;
-    margin: 0 auto;
-  }
+  body.lang-cn .slide-caption-name { font-style: normal; }
 
   /* Message slide */
   .slide-msg-content {
@@ -808,8 +809,7 @@
   body.lang-cn .slide-msg-text,
   body.lang-cn .memories-title em,
   body.lang-cn .story-title em,
-  body.lang-cn .slide-main em,
-  body.lang-cn .slide-photo-caption .name { font-style: normal; }
+  body.lang-cn .slide-main em { font-style: normal; }
   .slide-msg-author {
     display: inline-flex;
     align-items: center;
@@ -1843,14 +1843,11 @@ function buildSlides() {
       div.classList.add('slide-galaxy');
       div.innerHTML = `
         <div class="slide-photo-wrap">
+          ${displayCaption ? `<div class="slide-caption-text">${escapeHtml(displayCaption)}</div>` : ''}
           <div class="slide-photo-frame">
             <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}">
           </div>
-          ${(p.name || displayCaption) ? `
-            <div class="slide-photo-caption">
-              ${p.name ? `<div class="name">${escapeHtml(p.name)}</div>` : ''}
-              ${displayCaption ? `<div class="text">${escapeHtml(displayCaption)}</div>` : ''}
-            </div>` : ''}
+          ${p.name ? `<div class="slide-caption-name">— ${escapeHtml(p.name)}</div>` : ''}
         </div>`;
     } else if (s.type === 'message') {
       const m = s.data;
