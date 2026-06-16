@@ -768,11 +768,12 @@
   .slide-caption-name {
     font-family: 'Playfair Display', 'Noto Serif SC', serif;
     font-style: italic;
-    font-size: clamp(15px, 1.6vw, 22px);
-    font-weight: 700;
+    font-size: clamp(12px, 1.2vw, 16px);
+    font-weight: 600;
     color: var(--sol);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
     text-align: center;
+    opacity: 0.9;
   }
   body.lang-cn .slide-caption-name { font-style: normal; }
 
@@ -1844,10 +1845,10 @@ function buildSlides() {
       div.innerHTML = `
         <div class="slide-photo-wrap">
           ${displayCaption ? `<div class="slide-caption-text">${escapeHtml(displayCaption)}</div>` : ''}
+          ${p.name ? `<div class="slide-caption-name">— ${escapeHtml(p.name)}</div>` : ''}
           <div class="slide-photo-frame">
             <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}">
           </div>
-          ${p.name ? `<div class="slide-caption-name">— ${escapeHtml(p.name)}</div>` : ''}
         </div>`;
     } else if (s.type === 'message') {
       const m = s.data;
