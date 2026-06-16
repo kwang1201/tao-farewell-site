@@ -731,18 +731,20 @@
   }
 
   /* Photo slide */
-  .slide-photo-bg {
-    position: absolute; inset: 0;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: brightness(0.55);
+  .slide-photo-wrap {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(18px, 2.4vh, 32px);
+    max-width: min(82vw, 1100px);
+    padding: 0 24px;
   }
   .slide-photo-frame {
     position: relative;
-    z-index: 2;
-    max-width: min(82vw, 1100px);
-    max-height: 78vh;
+    max-width: 100%;
+    max-height: 64vh;
     box-shadow: 0 24px 80px rgba(0,0,0,0.6);
     border-radius: 12px;
     overflow: hidden;
@@ -750,15 +752,13 @@
   .slide-photo-frame img {
     display: block;
     max-width: 100%;
-    max-height: 78vh;
+    max-height: 64vh;
     object-fit: contain;
   }
   .slide-photo-caption {
-    position: absolute;
-    bottom: clamp(40px, 6vh, 80px); left: 0; right: 0;
-    z-index: 3;
+    position: relative;
     text-align: center;
-    padding: 0 24px;
+    max-width: 760px;
   }
   .slide-photo-caption .name {
     font-family: 'Playfair Display', serif;
@@ -772,7 +772,6 @@
     font-size: clamp(14px, 1.5vw, 20px);
     color: rgba(255,255,255,0.85);
     line-height: 1.5;
-    max-width: 760px;
     margin: 0 auto;
   }
 
@@ -1841,14 +1840,17 @@ function buildSlides() {
     } else if (s.type === 'photo') {
       const p = s.data;
       const displayCaption = (lang === 'cn' && p.caption_zh) ? p.caption_zh : (p.caption || '');
+      div.classList.add('slide-galaxy');
       div.innerHTML = `
-        <div class="slide-photo-bg" style="background-image:url('${p.image_url}')"></div>
-        <div class="slide-photo-frame">
-          <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}">
-        </div>
-        <div class="slide-photo-caption">
-          <div class="name">${escapeHtml(p.name || '')}</div>
-          ${displayCaption ? `<div class="text">${escapeHtml(displayCaption)}</div>` : ''}
+        <div class="slide-photo-wrap">
+          <div class="slide-photo-frame">
+            <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}">
+          </div>
+          ${(p.name || displayCaption) ? `
+            <div class="slide-photo-caption">
+              ${p.name ? `<div class="name">${escapeHtml(p.name)}</div>` : ''}
+              ${displayCaption ? `<div class="text">${escapeHtml(displayCaption)}</div>` : ''}
+            </div>` : ''}
         </div>`;
     } else if (s.type === 'message') {
       const m = s.data;
