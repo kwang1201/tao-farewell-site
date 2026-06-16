@@ -345,20 +345,34 @@
   .photo-item:hover .photo-caption { opacity: 1; }
   .photo-caption-name { font-size: 13px; font-weight: 600; color: var(--sol); margin-bottom: 2px; }
   .photo-caption-text { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4; }
-  .photo-del {
+  .photo-actions {
     position: absolute;
     top: 10px; right: 10px;
-    width: 28px; height: 28px;
-    background: rgba(0,0,0,0.55);
-    border: none; border-radius: 50%;
-    color: #fff; font-size: 14px;
-    cursor: pointer;
-    display: none;
-    align-items: center; justify-content: center;
-    transition: background 0.2s;
+    display: flex;
+    gap: 6px;
+    z-index: 5;
+    opacity: 0.9;
+    transition: opacity 0.2s;
   }
-  .photo-item:hover .photo-del { display: flex; }
-  .photo-del:hover { background: #c0392b; }
+  .photo-item:hover .photo-actions { opacity: 1; }
+  .photo-edit, .photo-del {
+    width: 32px; height: 32px;
+    background: var(--sol);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    color: var(--deep-galaxy);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center; justify-content: center;
+    transition: transform 0.15s, background 0.2s, color 0.2s;
+    padding: 0;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+  }
+  .photo-edit svg { width: 14px; height: 14px; fill: var(--deep-galaxy); }
+  .photo-edit:hover { background: #fff; transform: scale(1.08); }
+  .photo-del:hover { background: #c0392b; color: #fff; transform: scale(1.08); }
 
   .empty-state { text-align: center; padding: 64px 24px; color: rgba(255,255,255,0.35); }
   .empty-state p { font-size: 15px; margin-top: 12px; }
@@ -568,20 +582,31 @@
   .message-author-info { flex: 1; min-width: 0; }
   .message-author-name { font-size: 14px; font-weight: 600; color: var(--on-surface); }
   .message-date { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-  .message-del {
+  .message-actions {
     position: absolute;
-    top: 14px; right: 14px;
-    background: transparent;
-    border: none; color: #ccc;
-    font-size: 16px; cursor: pointer;
-    width: 28px; height: 28px;
+    top: 12px; right: 12px;
+    display: flex;
+    gap: 4px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    z-index: 2;
+  }
+  .message-card:hover .message-actions { opacity: 1; }
+  .message-edit, .message-del {
+    background: var(--surface-variant);
+    border: none;
+    color: #888;
+    font-size: 14px;
+    cursor: pointer;
+    width: 30px; height: 30px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.2s;
-    opacity: 0;
+    padding: 0;
   }
-  .message-card:hover .message-del { opacity: 1; }
-  .message-del:hover { color: #c0392b; background: #fef0f0; }
+  .message-edit svg { width: 13px; height: 13px; fill: currentColor; }
+  .message-edit:hover { color: #fff; background: var(--still-water); }
+  .message-del:hover { color: #fff; background: #c0392b; }
   .messages-empty {
     grid-column: 1/-1;
     text-align: center;
@@ -943,7 +968,7 @@
   <div class="caption-modal">
     <h3 id="pmTitle">Upload Photo(s)</h3>
     <p id="pmSub">Pick one or more photos, add your name and a short caption.</p>
-    <div class="form-field">
+    <div class="form-field" id="phZoneField">
       <label id="pmPhotoLabel">Photo(s)</label>
       <div class="ph-zone" id="phZone">
         <input type="file" id="photoInput" accept="image/*" multiple>
@@ -962,6 +987,26 @@
     <div class="modal-actions">
       <button class="btn-secondary" id="pmCancelBtn" onclick="closeCaptionModal()">Cancel</button>
       <button class="btn-primary" id="uploadBtn" onclick="confirmUpload()">Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Message edit modal -->
+<div class="caption-overlay" id="msgEditOverlay">
+  <div class="caption-modal">
+    <h3 id="msgEditTitleEl">Edit Your Message</h3>
+    <p id="msgEditSubEl">Update the name or message body.</p>
+    <div class="form-field">
+      <label id="msgEditNameLabel">Your Name</label>
+      <input type="text" id="msgEditName" placeholder="Your name" maxlength="60">
+    </div>
+    <div class="form-field">
+      <label id="msgEditBodyLabel">Message</label>
+      <textarea id="msgEditText" rows="5" maxlength="500" placeholder="Your message..." style="min-height:120px; padding:12px 16px; border:1.5px solid var(--outline); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--on-surface); background:var(--surface-variant); resize:vertical; width:100%;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="msgEditCancelBtn" onclick="closeMsgEditModal()">Cancel</button>
+      <button class="btn-primary" id="msgEditSaveBtn" onclick="confirmMsgEdit()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1070,6 +1115,13 @@ const I18N = {
     pmCancel: 'Cancel',
     pmUpload: 'Upload',
     pmUploading: 'Uploading...',
+    pmEditTitle: 'Edit Photo Details',
+    pmEditSub: 'Update the name or caption for this photo.',
+    pmSave: 'Save Changes',
+    pmSaving: 'Saving...',
+    msgEditTitle: 'Edit Your Message',
+    msgEditSub: 'Update the name or message body.',
+    msgEditBodyLabel: 'Message',
     tPickPhoto: 'Please pick at least one photo',
     tEnterName: 'Please enter your name',
     tWriteMsg: 'Please write a message',
@@ -1079,6 +1131,8 @@ const I18N = {
     tPosted: 'Your message has been posted',
     tPhotoRemoved: 'Photo removed',
     tMsgRemoved: 'Message removed',
+    tPhotoUpdated: 'Photo updated',
+    tMsgUpdated: 'Message updated',
     tMusicPlay: '♪ Music playing',
     tMusicPause: 'Music paused',
     tMusicBlocked: 'Browser blocked autoplay — click ♪ again',
@@ -1126,6 +1180,13 @@ const I18N = {
     pmCancel: '取消',
     pmUpload: '上传',
     pmUploading: '上传中…',
+    pmEditTitle: '编辑照片信息',
+    pmEditSub: '更新这张照片的姓名或说明。',
+    pmSave: '保存修改',
+    pmSaving: '保存中…',
+    msgEditTitle: '编辑留言',
+    msgEditSub: '更新姓名或留言内容。',
+    msgEditBodyLabel: '留言内容',
     tPickPhoto: '请至少选择一张照片',
     tEnterName: '请输入您的姓名',
     tWriteMsg: '请写一些内容',
@@ -1135,6 +1196,8 @@ const I18N = {
     tPosted: '您的留言已发布',
     tPhotoRemoved: '照片已删除',
     tMsgRemoved: '留言已删除',
+    tPhotoUpdated: '照片已更新',
+    tMsgUpdated: '留言已更新',
     tMusicPlay: '♪ 音乐播放中',
     tMusicPause: '音乐已暂停',
     tMusicBlocked: '浏览器阻止自动播放——请再次点击 ♪',
@@ -1176,16 +1239,25 @@ function applyLang() {
   set('composeTitle', t('composeTitle'));
   set('postBtnLabel', t('postBtn'));
   set('s2Empty', t('s2Empty'));
-  set('pmTitle', t('pmTitle'));
-  set('pmSub', t('pmSub'));
+  // Photo modal: title + button switch based on mode
+  set('pmTitle', modalMode === 'edit' ? t('pmEditTitle') : t('pmTitle'));
+  set('pmSub', modalMode === 'edit' ? t('pmEditSub') : t('pmSub'));
   set('pmCancelBtn', t('pmCancel'));
   set('presentBtn', t('present'));
+  // Message edit modal labels
+  set('msgEditTitleEl', t('msgEditTitle'));
+  set('msgEditSubEl', t('msgEditSub'));
+  set('msgEditNameLabel', t('pmNameLabel'));
+  set('msgEditBodyLabel', t('msgEditBodyLabel'));
+  set('msgEditCancelBtn', t('pmCancel'));
   // Placeholders
   const setPh = (id, text) => { const el = document.getElementById(id); if (el) el.placeholder = text; };
   setPh('msgName', t('msgNamePh'));
   setPh('msgText', t('msgTextPh'));
   setPh('captionName', t('pmNamePh'));
   setPh('captionText', t('pmCaptionPh'));
+  setPh('msgEditName', t('pmNamePh'));
+  setPh('msgEditText', t('msgTextPh'));
   // Form labels (preserve required asterisk)
   const pmPhotoLbl = document.getElementById('pmPhotoLabel');
   if (pmPhotoLbl) pmPhotoLbl.textContent = t('pmPhotoLabel');
@@ -1193,9 +1265,11 @@ function applyLang() {
   if (pmNameLbl) pmNameLbl.innerHTML = `${escapeHtml(t('pmNameLabel'))} <span style="color:#c0392b">*</span>`;
   const pmCapLbl = document.getElementById('pmCaptionLabel');
   if (pmCapLbl) pmCapLbl.textContent = t('pmCaptionLabel');
-  // Upload button label preserves disabled state
+  // Upload/Save button label preserves disabled state
   const upBtn = document.getElementById('uploadBtn');
-  if (upBtn && !upBtn.disabled) upBtn.textContent = t('pmUpload');
+  if (upBtn && !upBtn.disabled) upBtn.textContent = modalMode === 'edit' ? t('pmSave') : t('pmUpload');
+  const saveMsgBtn = document.getElementById('msgEditSaveBtn');
+  if (saveMsgBtn && !saveMsgBtn.disabled) saveMsgBtn.textContent = t('pmSave');
   // Music button title
   const musicBtn = document.getElementById('musicBtn');
   if (musicBtn) musicBtn.title = t('music');
@@ -1267,6 +1341,9 @@ async function translateToZh(text) {
 // ═════════════════════════════════════════════════════════════
 let pendingFiles = [];
 let photos = [];
+let modalMode = 'upload';        // 'upload' | 'edit'
+let editingPhoto = null;          // the photo object being edited
+let editingMessage = null;        // the message object being edited
 
 async function loadPhotos() {
   const { data, error } = await sb
@@ -1304,9 +1381,18 @@ function renderPhotos() {
         <div class="photo-caption-name">${escapeHtml(p.name || '')}</div>
         ${displayCaption ? `<div class="photo-caption-text">${escapeHtml(displayCaption)}</div>` : ''}
       </div>
-      <button class="photo-del" title="Delete" data-id="${p.id}">✕</button>
+      <div class="photo-actions">
+        <button class="photo-edit" title="Edit" data-id="${p.id}">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </button>
+        <button class="photo-del" title="Delete" data-id="${p.id}">✕</button>
+      </div>
     `;
     item.querySelector('img').addEventListener('click', () => openLightbox(p));
+    item.querySelector('.photo-edit').addEventListener('click', e => {
+      e.stopPropagation();
+      openPhotoEditModal(p);
+    });
     item.querySelector('.photo-del').addEventListener('click', e => {
       e.stopPropagation();
       deletePhoto(p);
@@ -1316,12 +1402,31 @@ function renderPhotos() {
 }
 
 function openPhotoModal() {
+  modalMode = 'upload';
+  editingPhoto = null;
   pendingFiles = [];
   document.getElementById('captionName').value = '';
   document.getElementById('captionText').value = '';
   document.getElementById('photoInput').value = '';
   document.getElementById('phCount').textContent = '';
   document.getElementById('phZoneLbl').textContent = t('pmZonePh');
+  // Show file picker zone for upload mode
+  const photoField = document.getElementById('phZoneField');
+  if (photoField) photoField.style.display = '';
+  applyLang();
+  document.getElementById('captionOverlay').classList.add('active');
+}
+
+function openPhotoEditModal(p) {
+  modalMode = 'edit';
+  editingPhoto = p;
+  pendingFiles = [];
+  document.getElementById('captionName').value = p.name || '';
+  document.getElementById('captionText').value = p.caption || '';
+  // Hide file picker zone — we only edit metadata
+  const photoField = document.getElementById('phZoneField');
+  if (photoField) photoField.style.display = 'none';
+  applyLang();
   document.getElementById('captionOverlay').classList.add('active');
 }
 
@@ -1388,13 +1493,46 @@ phZone.addEventListener('drop', e => {
 function closeCaptionModal() {
   document.getElementById('captionOverlay').classList.remove('active');
   pendingFiles = [];
+  modalMode = 'upload';
+  editingPhoto = null;
+  const photoField = document.getElementById('phZoneField');
+  if (photoField) photoField.style.display = '';
 }
 
 async function confirmUpload() {
   const name = document.getElementById('captionName').value.trim();
   const caption = document.getElementById('captionText').value.trim();
-  if (!pendingFiles.length) { showToast(t('tPickPhoto'), true); return; }
   if (!name) { showToast(t('tEnterName'), true); document.getElementById('captionName').focus(); return; }
+
+  // Edit mode — update existing row, no file upload
+  if (modalMode === 'edit' && editingPhoto) {
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>  ${escapeHtml(t('pmSaving'))}`;
+    try {
+      // Only re-translate if caption text changed
+      let captionZh = editingPhoto.caption_zh || null;
+      if (caption !== (editingPhoto.caption || '')) {
+        captionZh = caption ? await translateToZh(caption) : null;
+      }
+      const { error } = await sb.from('tao_photos')
+        .update({ name, caption: caption || null, caption_zh: captionZh })
+        .eq('id', editingPhoto.id);
+      if (error) throw error;
+      await loadPhotos();
+      closeCaptionModal();
+      showToast(t('tPhotoUpdated'));
+    } catch (err) {
+      console.error('editPhoto', err);
+      showToast(t('tFailed'), true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = t('pmSave');
+    }
+    return;
+  }
+
+  if (!pendingFiles.length) { showToast(t('tPickPhoto'), true); return; }
 
   const btn = document.getElementById('uploadBtn');
   btn.disabled = true;
@@ -1516,8 +1654,14 @@ function renderMessages() {
         </div>
         <div class="message-date">${date}</div>
       </div>
-      <button class="message-del" title="Remove" data-id="${m.id}">✕</button>
+      <div class="message-actions">
+        <button class="message-edit" title="Edit" data-id="${m.id}">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </button>
+        <button class="message-del" title="Remove" data-id="${m.id}">✕</button>
+      </div>
     `;
+    card.querySelector('.message-edit').addEventListener('click', () => openMsgEditModal(m));
     card.querySelector('.message-del').addEventListener('click', () => deleteMessage(m));
     wall.appendChild(card);
   });
@@ -1569,6 +1713,51 @@ async function deleteMessage(m) {
   } catch (err) {
     console.error('deleteMessage', err);
     showToast(t('tFailed'), true);
+  }
+}
+
+function openMsgEditModal(m) {
+  editingMessage = m;
+  document.getElementById('msgEditName').value = m.name || '';
+  document.getElementById('msgEditText').value = m.body || '';
+  applyLang();
+  document.getElementById('msgEditOverlay').classList.add('active');
+}
+
+function closeMsgEditModal() {
+  document.getElementById('msgEditOverlay').classList.remove('active');
+  editingMessage = null;
+}
+
+async function confirmMsgEdit() {
+  if (!editingMessage) return;
+  const name = document.getElementById('msgEditName').value.trim();
+  const text = document.getElementById('msgEditText').value.trim();
+  if (!name) { showToast(t('tEnterName'), true); document.getElementById('msgEditName').focus(); return; }
+  if (!text) { showToast(t('tWriteMsg'), true); document.getElementById('msgEditText').focus(); return; }
+
+  const btn = document.getElementById('msgEditSaveBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>  ${escapeHtml(t('pmSaving'))}`;
+  try {
+    // Only re-translate if body changed
+    let bodyZh = editingMessage.body_zh || null;
+    if (text !== (editingMessage.body || '')) {
+      bodyZh = await translateToZh(text);
+    }
+    const { error } = await sb.from('tao_messages')
+      .update({ name, body: text, body_zh: bodyZh || null })
+      .eq('id', editingMessage.id);
+    if (error) throw error;
+    await loadMessages();
+    closeMsgEditModal();
+    showToast(t('tMsgUpdated'));
+  } catch (err) {
+    console.error('editMessage', err);
+    showToast(t('tFailed'), true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = t('pmSave');
   }
 }
 
@@ -1821,6 +2010,11 @@ document.addEventListener('keydown', e => {
   const cap = document.getElementById('captionOverlay');
   if (cap.classList.contains('active')) {
     if (e.key === 'Escape') closeCaptionModal();
+    return;
+  }
+  const msgEdit = document.getElementById('msgEditOverlay');
+  if (msgEdit && msgEdit.classList.contains('active')) {
+    if (e.key === 'Escape') closeMsgEditModal();
     return;
   }
   const pres = document.getElementById('pres');
