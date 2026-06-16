@@ -347,32 +347,32 @@
   .photo-caption-text { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4; }
   .photo-actions {
     position: absolute;
-    top: 10px; right: 10px;
+    top: 8px; right: 8px;
     display: flex;
-    gap: 6px;
+    gap: 4px;
     z-index: 5;
-    opacity: 0.9;
+    opacity: 0.75;
     transition: opacity 0.2s;
   }
   .photo-item:hover .photo-actions { opacity: 1; }
   .photo-edit, .photo-del {
-    width: 32px; height: 32px;
-    background: var(--sol);
-    border: 2px solid #fff;
+    width: 24px; height: 24px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.4);
     border-radius: 50%;
-    color: var(--deep-galaxy);
-    font-size: 14px;
-    font-weight: 700;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center; justify-content: center;
-    transition: transform 0.15s, background 0.2s, color 0.2s;
+    transition: background 0.2s;
     padding: 0;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
   }
-  .photo-edit svg { width: 14px; height: 14px; fill: var(--deep-galaxy); }
-  .photo-edit:hover { background: #fff; transform: scale(1.08); }
-  .photo-del:hover { background: #c0392b; color: #fff; transform: scale(1.08); }
+  .photo-edit svg { width: 11px; height: 11px; fill: #fff; }
+  .photo-edit:hover { background: var(--still-water); }
+  .photo-del:hover { background: #c0392b; }
 
   .empty-state { text-align: center; padding: 64px 24px; color: rgba(255,255,255,0.35); }
   .empty-state p { font-size: 15px; margin-top: 12px; }
@@ -595,16 +595,16 @@
   .message-edit, .message-del {
     background: var(--surface-variant);
     border: none;
-    color: #888;
-    font-size: 14px;
+    color: #999;
+    font-size: 12px;
     cursor: pointer;
-    width: 30px; height: 30px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.2s;
     padding: 0;
   }
-  .message-edit svg { width: 13px; height: 13px; fill: currentColor; }
+  .message-edit svg { width: 11px; height: 11px; fill: currentColor; }
   .message-edit:hover { color: #fff; background: var(--still-water); }
   .message-del:hover { color: #fff; background: #c0392b; }
   .messages-empty {
