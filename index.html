@@ -370,9 +370,63 @@
     padding: 0;
     backdrop-filter: blur(4px);
   }
-  .photo-edit svg { width: 11px; height: 11px; fill: #fff; }
+  .photo-edit svg, .photo-hide svg { width: 11px; height: 11px; fill: #fff; }
   .photo-edit:hover { background: var(--still-water); }
   .photo-del:hover { background: #c0392b; }
+  .photo-hide { /* shares base styles with .photo-edit, .photo-del above */ }
+  .photo-hide:hover { background: var(--clear-skies); }
+  .photo-hide.is-hidden { background: rgba(192, 57, 43, 0.75); }
+  .photo-hide.is-hidden:hover { background: var(--still-water); }
+  .photo-item.is-hidden { opacity: 0.5; }
+  .photo-item.is-hidden:hover { opacity: 0.85; }
+  .photo-hidden-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 5;
+    background: rgba(0,0,0,0.7);
+    color: var(--sol);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 12px;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+  /* shared base for .photo-hide (same as .photo-edit, .photo-del) */
+  .photo-hide {
+    width: 24px; height: 24px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center; justify-content: center;
+    transition: background 0.2s;
+    padding: 0;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Lightbox download button */
+  .lightbox-download {
+    position: absolute;
+    top: 24px; right: 80px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+  .lightbox-download:hover { background: var(--sol); color: var(--deep-galaxy); }
+  .lightbox-download:disabled { opacity: 0.5; cursor: not-allowed; }
+  .lightbox-download svg { width: 18px; height: 18px; fill: currentColor; }
 
   .empty-state { text-align: center; padding: 64px 24px; color: rgba(255,255,255,0.35); }
   .empty-state p { font-size: 15px; margin-top: 12px; }
@@ -1052,6 +1106,9 @@
 
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-download" id="lightboxDownloadBtn" onclick="event.stopPropagation(); downloadCurrentLightboxPhoto()" title="Save with caption">
+    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+  </button>
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightboxImg" src="" alt="">
   <div class="lightbox-caption">
@@ -1172,6 +1229,15 @@ const I18N = {
     tMsgRemoved: 'Message removed',
     tPhotoUpdated: 'Photo updated',
     tMsgUpdated: 'Message updated',
+    tPhotoHidden: 'Hidden from Present mode',
+    tPhotoShown: 'Restored to Present mode',
+    tGenerating: 'Generating image...',
+    tDownloaded: 'Image saved to Downloads',
+    actEdit: 'Edit',
+    actHide: 'Hide from Present',
+    actShow: 'Show in Present',
+    actDelete: 'Delete',
+    badgeHidden: 'Hidden',
     tMusicPlay: '♪ Music playing',
     tMusicPause: 'Music paused',
     tMusicBlocked: 'Browser blocked autoplay — click ♪ again',
@@ -1237,6 +1303,15 @@ const I18N = {
     tMsgRemoved: '留言已删除',
     tPhotoUpdated: '照片已更新',
     tMsgUpdated: '留言已更新',
+    tPhotoHidden: '已从播放中隐藏',
+    tPhotoShown: '已恢复到播放中',
+    tGenerating: '正在生成图片…',
+    tDownloaded: '图片已保存到下载文件夹',
+    actEdit: '编辑',
+    actHide: '从播放中隐藏',
+    actShow: '在播放中显示',
+    actDelete: '删除',
+    badgeHidden: '已隐藏',
     tMusicPlay: '♪ 音乐播放中',
     tMusicPause: '音乐已暂停',
     tMusicBlocked: '浏览器阻止自动播放——请再次点击 ♪',
@@ -1412,25 +1487,36 @@ function renderPhotos() {
 
   photos.forEach(p => {
     const item = document.createElement('div');
-    item.className = 'photo-item';
+    item.className = 'photo-item' + (p.hidden_from_present ? ' is-hidden' : '');
     const displayCaption = (lang === 'cn' && p.caption_zh) ? p.caption_zh : (p.caption || '');
+    const hideIcon = p.hidden_from_present
+      ? '<svg viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2z"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>';
     item.innerHTML = `
       <img src="${p.image_url}" alt="${escapeHtml(displayCaption)}" loading="lazy">
+      ${p.hidden_from_present ? `<div class="photo-hidden-badge">${escapeHtml(t('badgeHidden'))}</div>` : ''}
       <div class="photo-caption">
         <div class="photo-caption-name">${escapeHtml(p.name || '')}</div>
         ${displayCaption ? `<div class="photo-caption-text">${escapeHtml(displayCaption)}</div>` : ''}
       </div>
       <div class="photo-actions">
-        <button class="photo-edit" title="Edit" data-id="${p.id}">
+        <button class="photo-edit" title="${escapeHtml(t('actEdit'))}" data-id="${p.id}">
           <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
         </button>
-        <button class="photo-del" title="Delete" data-id="${p.id}">✕</button>
+        <button class="photo-hide ${p.hidden_from_present ? 'is-hidden' : ''}" title="${escapeHtml(t(p.hidden_from_present ? 'actShow' : 'actHide'))}" data-id="${p.id}">
+          ${hideIcon}
+        </button>
+        <button class="photo-del" title="${escapeHtml(t('actDelete'))}" data-id="${p.id}">✕</button>
       </div>
     `;
     item.querySelector('img').addEventListener('click', () => openLightbox(p));
     item.querySelector('.photo-edit').addEventListener('click', e => {
       e.stopPropagation();
       openPhotoEditModal(p);
+    });
+    item.querySelector('.photo-hide').addEventListener('click', e => {
+      e.stopPropagation();
+      togglePhotoHidden(p);
     });
     item.querySelector('.photo-del').addEventListener('click', e => {
       e.stopPropagation();
@@ -1637,13 +1723,217 @@ async function deletePhoto(p) {
   }
 }
 
+let currentLightboxPhoto = null;
 function openLightbox(p) {
+  currentLightboxPhoto = p;
   document.getElementById('lightboxImg').src = p.image_url;
   document.getElementById('lightboxName').textContent = p.name || '';
-  document.getElementById('lightboxCaption').textContent = p.caption || '';
+  const cap = (lang === 'cn' && p.caption_zh) ? p.caption_zh : (p.caption || '');
+  document.getElementById('lightboxCaption').textContent = cap;
   document.getElementById('lightbox').classList.add('active');
 }
-function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  currentLightboxPhoto = null;
+}
+
+async function togglePhotoHidden(p) {
+  const newVal = !p.hidden_from_present;
+  try {
+    const { error } = await sb.from('tao_photos')
+      .update({ hidden_from_present: newVal })
+      .eq('id', p.id);
+    if (error) throw error;
+    p.hidden_from_present = newVal;
+    renderPhotos();
+    showToast(t(newVal ? 'tPhotoHidden' : 'tPhotoShown'));
+  } catch (err) {
+    console.error('togglePhotoHidden', err);
+    showToast(t('tFailed'), true);
+  }
+}
+
+// Wrap text for canvas, handling CJK (char-based) and Latin (word-based)
+function wrapCanvasText(ctx, text, font, maxWidth) {
+  ctx.font = font;
+  const lines = [];
+  text.split('\n').forEach(paragraph => {
+    if (!paragraph) { lines.push(''); return; }
+    const hasCJK = /[぀-ヿ一-鿿가-힯]/.test(paragraph);
+    if (hasCJK) {
+      let line = '';
+      for (const ch of paragraph) {
+        const test = line + ch;
+        if (ctx.measureText(test).width <= maxWidth) line = test;
+        else {
+          if (line) lines.push(line);
+          line = ch;
+        }
+      }
+      if (line) lines.push(line);
+    } else {
+      const words = paragraph.split(/\s+/);
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width <= maxWidth) line = test;
+        else {
+          if (line) lines.push(line);
+          line = word;
+        }
+      }
+      if (line) lines.push(line);
+    }
+  });
+  return lines;
+}
+
+async function downloadCurrentLightboxPhoto() {
+  if (!currentLightboxPhoto) return;
+  const btn = document.getElementById('lightboxDownloadBtn');
+  if (btn) btn.disabled = true;
+  try {
+    await downloadPhotoComposite(currentLightboxPhoto);
+  } catch (err) {
+    console.error('downloadComposite', err);
+    showToast(t('tFailed'), true);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function downloadPhotoComposite(p) {
+  showToast(t('tGenerating'));
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch(e) {}
+  }
+
+  // Load image with CORS so canvas isn't tainted
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('image load failed'));
+    im.src = p.image_url;
+  });
+
+  const displayCaption = (lang === 'cn' && p.caption_zh) ? p.caption_zh : (p.caption || '');
+
+  // Layout
+  const padding = 64;
+  const maxImgW = 1600;
+  const captionFont = 'italic 32px "Playfair Display", "Noto Serif SC", Georgia, serif';
+  const nameFont = 'italic 600 22px "Playfair Display", "Noto Serif SC", Georgia, serif';
+  const captionLineH = 46;
+  const nameLineH = 30;
+  const gapPhotoToText = 56;
+  const gapCaptionToName = 32;
+
+  let imgW = img.naturalWidth, imgH = img.naturalHeight;
+  if (imgW > maxImgW) {
+    const s = maxImgW / imgW;
+    imgW = Math.round(imgW * s);
+    imgH = Math.round(imgH * s);
+  }
+
+  const measure = document.createElement('canvas').getContext('2d');
+  const captionMaxW = Math.max(imgW, 800);
+  const captionLines = displayCaption ? wrapCanvasText(measure, displayCaption, captionFont, captionMaxW) : [];
+
+  // Canvas size
+  const canvasW = Math.max(imgW, captionMaxW) + padding * 2;
+  let canvasH = padding + imgH;
+  if (captionLines.length) canvasH += gapPhotoToText + captionLines.length * captionLineH;
+  if (p.name) canvasH += (captionLines.length ? gapCaptionToName : gapPhotoToText) + nameLineH;
+  canvasH += padding;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  const ctx = canvas.getContext('2d');
+
+  // Background (deep galaxy + subtle sol accent)
+  ctx.fillStyle = '#13294B';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+  const grad = ctx.createRadialGradient(canvasW * 0.88, canvasH * 0.12, 0, canvasW * 0.88, canvasH * 0.12, canvasW * 0.55);
+  grad.addColorStop(0, 'rgba(253,184,19,0.08)');
+  grad.addColorStop(1, 'rgba(253,184,19,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  // Photo with shadow + rounded corners
+  const photoX = (canvasW - imgW) / 2;
+  const photoY = padding;
+  const radius = 14;
+
+  function roundedPath(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  // Shadow
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 36;
+  ctx.shadowOffsetY = 12;
+  ctx.fillStyle = '#000';
+  roundedPath(ctx, photoX, photoY, imgW, imgH, radius);
+  ctx.fill();
+  ctx.restore();
+
+  // Clip + draw
+  ctx.save();
+  roundedPath(ctx, photoX, photoY, imgW, imgH, radius);
+  ctx.clip();
+  ctx.drawImage(img, photoX, photoY, imgW, imgH);
+  ctx.restore();
+
+  // Caption text (italic white, centered)
+  let textY = photoY + imgH + gapPhotoToText;
+  if (captionLines.length) {
+    ctx.font = captionFont;
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    captionLines.forEach((line, i) => {
+      ctx.fillText(line, canvasW / 2, textY + i * captionLineH);
+    });
+    textY += captionLines.length * captionLineH;
+  }
+
+  // Author name (sol gold italic, em-dash attribution)
+  if (p.name) {
+    textY += captionLines.length ? gapCaptionToName : 0;
+    ctx.font = nameFont;
+    ctx.fillStyle = '#FDB813';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('— ' + p.name, canvasW / 2, textY);
+  }
+
+  // Export and download
+  await new Promise(resolve => {
+    canvas.toBlob(blob => {
+      if (!blob) { showToast(t('tFailed'), true); return resolve(); }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safe = (p.name || 'photo').replace(/[^\w가-힣一-鿿]+/g, '_').slice(0, 30) || 'photo';
+      a.download = `tao-farewell-${safe}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(t('tDownloaded'));
+      resolve();
+    }, 'image/png');
+  });
+}
 
 // ═════════════════════════════════════════════════════════════
 // MESSAGES
@@ -1848,7 +2138,7 @@ async function startPresent() {
 
   slides = [];
   slides.push({ type: 'title' });
-  photos.forEach(p => slides.push({ type: 'photo', data: p }));
+  photos.filter(p => !p.hidden_from_present).forEach(p => slides.push({ type: 'photo', data: p }));
   messages.forEach(m => slides.push({ type: 'message', data: m }));
   slides.push({ type: 'closing' });
 
