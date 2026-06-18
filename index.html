@@ -1000,6 +1000,7 @@
     transition: background 0.2s;
   }
   .pres-btn:hover { background: rgba(255,255,255,0.18); }
+  .pres-hide-btn:hover { background: rgba(192, 57, 43, 0.6); }
   .pres-counter {
     color: rgba(255,255,255,0.65);
     font-size: 12px;
@@ -1216,6 +1217,9 @@
     <button class="pres-btn" onclick="presPrev()" title="Previous">‹</button>
     <button class="pres-btn" id="playBtn" onclick="presToggle()" title="Pause / Play">❚❚</button>
     <button class="pres-btn" onclick="presNext()" title="Next">›</button>
+    <button class="pres-btn pres-hide-btn" id="presHideBtn" onclick="hideCurrentPresentSlide()" title="Hide from Present" style="display:none;">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff;"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2z"/></svg>
+    </button>
     <span class="pres-counter" id="presCounter">1 / 1</span>
   </div>
 </div>
@@ -1450,6 +1454,9 @@ function applyLang() {
   // Music button title
   const musicBtn = document.getElementById('musicBtn');
   if (musicBtn) musicBtn.title = t('music');
+  // Present-mode Hide button title
+  const presHideBtn = document.getElementById('presHideBtn');
+  if (presHideBtn) presHideBtn.title = t('actHide') + ' (H)';
   // Photo zone label — only update if not showing "change selection"
   const zoneLbl = document.getElementById('phZoneLbl');
   if (zoneLbl) {
@@ -2375,6 +2382,10 @@ function showSlide(idx) {
   document.getElementById('presBar').style.width = `${((idx + 1) / slides.length) * 100}%`;
 
   const s = slides[idx];
+  // Show "Hide" button only on photo slides
+  const hideBtn = document.getElementById('presHideBtn');
+  if (hideBtn) hideBtn.style.display = (s && s.type === 'photo') ? 'flex' : 'none';
+
   if (!s) return;
   let dur;
   if (s.type === 'title') dur = TITLE_DUR;
@@ -2383,6 +2394,33 @@ function showSlide(idx) {
   else if (s.type === 'message') dur = msgDuration(s.data);
   else dur = 6000;
   startTm(dur);
+}
+
+async function hideCurrentPresentSlide() {
+  const cur = slides[curSlide];
+  if (!cur || cur.type !== 'photo') return;
+  const photo = cur.data;
+  clearTm();
+  try {
+    const { error } = await sb.from('tao_photos')
+      .update({ hidden_from_present: true })
+      .eq('id', photo.id);
+    if (error) throw error;
+    photo.hidden_from_present = true;
+    // Drop from current playback
+    slides.splice(curSlide, 1);
+    if (curSlide >= slides.length) curSlide = Math.max(0, slides.length - 1);
+    buildSlides();
+    showSlide(curSlide);
+    // Sync gallery in the background — no need to await
+    renderPhotos();
+    showToast(t('tPhotoHidden'));
+  } catch (err) {
+    console.error('hideCurrentPresentSlide', err);
+    showToast(t('tFailed'), true);
+    // Resume timing if we paused
+    if (isPlaying) showSlide(curSlide);
+  }
 }
 
 function presNext() { curSlide = (curSlide + 1) % slides.length; showSlide(curSlide); }
@@ -2508,6 +2546,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'ArrowLeft') presPrev();
   else if (e.key === 'Escape') exitPres();
   else if (e.key.toLowerCase() === 'p') presToggle();
+  else if (e.key.toLowerCase() === 'h') hideCurrentPresentSlide();
 });
 
 // ═════════════════════════════════════════════════════════════
