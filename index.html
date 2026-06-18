@@ -318,6 +318,44 @@
   }
   .btn-secondary:hover { border-color: #999; color: var(--on-surface); }
 
+  /* Curator bar — bulk actions */
+  .curator-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .curator-count {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.04em;
+    margin-right: auto;
+  }
+  .btn-download-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: transparent;
+    color: rgba(255,255,255,0.75);
+    border: 1.5px solid rgba(253,184,19,0.4);
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-download-all:hover:not(:disabled) {
+    background: rgba(253,184,19,0.1);
+    border-color: var(--sol);
+    color: #fff;
+  }
+  .btn-download-all:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-download-all svg { width: 14px; height: 14px; fill: currentColor; }
+
   /* Photo grid */
   .photo-grid { columns: 3; column-gap: 16px; }
   @media (max-width: 900px) { .photo-grid { columns: 2; } }
@@ -1049,6 +1087,14 @@
       <div class="upload-trigger-sub" id="s1UploadSub">Share photo(s) with Tao · JPG, PNG, GIF · Click to upload</div>
     </div>
 
+    <div class="curator-bar" id="curatorBar" style="display:none;">
+      <span class="curator-count" id="curatorCount"></span>
+      <button class="btn-download-all" id="downloadAllBtn" onclick="downloadAllPhotos()">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <span class="btn-label" id="downloadAllLabel">Download all (zip)</span>
+      </button>
+    </div>
+
     <div class="photo-grid" id="photoGrid">
       <div class="empty-state" id="photoEmpty">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="rgba(255,255,255,0.2)"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
@@ -1236,6 +1282,12 @@ const I18N = {
     tPhotoShown: 'Restored to Present mode',
     tGenerating: 'Generating image...',
     tDownloaded: 'Image saved to Downloads',
+    tAllDownloaded: (n, failed) => `Saved ${n} photo${n>1?'s':''}${failed?` (${failed} failed)`:''}`,
+    btnDownloadAll: n => `Download all ${n} (zip)`,
+    btnLoadingLib: 'Preparing...',
+    btnGeneratingProgress: (cur, total) => `Generating ${cur} / ${total}...`,
+    btnZipping: 'Packaging zip...',
+    curatorCount: (total, hidden) => hidden ? `${total} photos · ${hidden} hidden` : `${total} photos`,
     actEdit: 'Edit',
     actDownload: 'Save with caption',
     actHide: 'Hide from Present',
@@ -1311,6 +1363,12 @@ const I18N = {
     tPhotoShown: '已恢复到播放中',
     tGenerating: '正在生成图片…',
     tDownloaded: '图片已保存到下载文件夹',
+    tAllDownloaded: (n, failed) => `已保存 ${n} 张照片${failed?`(${failed} 张失败)`:''}`,
+    btnDownloadAll: n => `下载全部 ${n} 张(zip)`,
+    btnLoadingLib: '准备中…',
+    btnGeneratingProgress: (cur, total) => `生成中 ${cur} / ${total}…`,
+    btnZipping: '正在打包…',
+    curatorCount: (total, hidden) => hidden ? `共 ${total} 张 · ${hidden} 张已隐藏` : `共 ${total} 张`,
     actEdit: '编辑',
     actDownload: '保存(含说明)',
     actHide: '从播放中隐藏',
@@ -1482,13 +1540,22 @@ async function loadPhotos() {
 function renderPhotos() {
   const grid = document.getElementById('photoGrid');
   const empty = document.getElementById('photoEmpty');
+  const curatorBar = document.getElementById('curatorBar');
+  const curatorCount = document.getElementById('curatorCount');
   grid.querySelectorAll('.photo-item').forEach(el => el.remove());
 
   if (photos.length === 0) {
     empty.style.display = '';
+    if (curatorBar) curatorBar.style.display = 'none';
     return;
   }
   empty.style.display = 'none';
+  if (curatorBar) {
+    curatorBar.style.display = 'flex';
+    const hidden = photos.filter(p => p.hidden_from_present).length;
+    curatorCount.textContent = t('curatorCount', photos.length, hidden);
+    document.getElementById('downloadAllLabel').textContent = t('btnDownloadAll', photos.length);
+  }
 
   photos.forEach(p => {
     const item = document.createElement('div');
@@ -1818,8 +1885,7 @@ async function downloadCurrentLightboxPhoto() {
   }
 }
 
-async function downloadPhotoComposite(p) {
-  showToast(t('tGenerating'));
+async function generatePhotoCompositeBlob(p) {
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch(e) {}
   }
@@ -1909,7 +1975,7 @@ async function downloadPhotoComposite(p) {
   ctx.drawImage(img, photoX, photoY, imgW, imgH);
   ctx.restore();
 
-  // Caption text (italic white, centered)
+  // Caption text
   let textY = photoY + imgH + gapPhotoToText;
   if (captionLines.length) {
     ctx.font = captionFont;
@@ -1922,7 +1988,7 @@ async function downloadPhotoComposite(p) {
     textY += captionLines.length * captionLineH;
   }
 
-  // Author name (sol gold italic, em-dash attribution)
+  // Author name
   if (p.name) {
     textY += captionLines.length ? gapCaptionToName : 0;
     ctx.font = nameFont;
@@ -1932,23 +1998,93 @@ async function downloadPhotoComposite(p) {
     ctx.fillText('— ' + p.name, canvasW / 2, textY);
   }
 
-  // Export and download
-  await new Promise(resolve => {
+  return await new Promise((resolve, reject) => {
     canvas.toBlob(blob => {
-      if (!blob) { showToast(t('tFailed'), true); return resolve(); }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const safe = (p.name || 'photo').replace(/[^\w가-힣一-鿿]+/g, '_').slice(0, 30) || 'photo';
-      a.download = `tao-farewell-${safe}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast(t('tDownloaded'));
-      resolve();
+      if (!blob) reject(new Error('toBlob failed'));
+      else resolve(blob);
     }, 'image/png');
   });
+}
+
+function safeFilename(name) {
+  return (name || 'photo').replace(/[^\w가-힣一-鿿]+/g, '_').slice(0, 30) || 'photo';
+}
+
+async function downloadPhotoComposite(p) {
+  showToast(t('tGenerating'));
+  const blob = await generatePhotoCompositeBlob(p);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tao-farewell-${safeFilename(p.name)}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(t('tDownloaded'));
+}
+
+// Lazy-load JSZip from CDN — only when bulk download is invoked
+function loadJSZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    s.onload = () => resolve(window.JSZip);
+    s.onerror = () => reject(new Error('JSZip failed to load'));
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadAllPhotos() {
+  if (!photos.length) { showToast(t('tPickPhoto'), true); return; }
+
+  const btn = document.getElementById('downloadAllBtn');
+  const label = document.getElementById('downloadAllLabel');
+  const origLabel = label.textContent;
+  btn.disabled = true;
+
+  try {
+    label.textContent = t('btnLoadingLib');
+    const JSZipLib = await loadJSZip();
+    const zip = new JSZipLib();
+    const total = photos.length;
+    let failed = 0;
+
+    for (let i = 0; i < total; i++) {
+      const p = photos[i];
+      label.textContent = t('btnGeneratingProgress', i + 1, total);
+      try {
+        const blob = await generatePhotoCompositeBlob(p);
+        const num = String(i + 1).padStart(2, '0');
+        zip.file(`${num}-${safeFilename(p.name)}.png`, blob);
+      } catch (err) {
+        console.error('compose failed for', p.id, err);
+        failed++;
+      }
+    }
+
+    label.textContent = t('btnZipping');
+    const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
+
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    const date = new Date().toISOString().slice(0, 10);
+    a.download = `tao-farewell-photos-${date}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast(t('tAllDownloaded', total - failed, failed));
+  } catch (err) {
+    console.error('downloadAllPhotos', err);
+    showToast(t('tFailed'), true);
+  } finally {
+    btn.disabled = false;
+    label.textContent = origLabel;
+  }
 }
 
 // ═════════════════════════════════════════════════════════════
