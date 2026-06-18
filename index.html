@@ -1287,7 +1287,7 @@ const I18N = {
     tGenerating: 'Generating image...',
     tDownloaded: 'Image saved to Downloads',
     tAllDownloaded: (n, failed) => `Saved ${n} photo${n>1?'s':''}${failed?` (${failed} failed)`:''}`,
-    btnDownloadAll: n => `Download all ${n} (zip)`,
+    btnDownloadAll: n => `Save all ${n} photos`,
     btnLoadingLib: 'Preparing...',
     btnGeneratingProgress: (cur, total) => `Generating ${cur} / ${total}...`,
     btnZipping: 'Packaging zip...',
@@ -1368,7 +1368,7 @@ const I18N = {
     tGenerating: '正在生成图片…',
     tDownloaded: '图片已保存到下载文件夹',
     tAllDownloaded: (n, failed) => `已保存 ${n} 张照片${failed?`(${failed} 张失败)`:''}`,
-    btnDownloadAll: n => `下载全部 ${n} 张(zip)`,
+    btnDownloadAll: n => `保存全部 ${n} 张照片`,
     btnLoadingLib: '准备中…',
     btnGeneratingProgress: (cur, total) => `生成中 ${cur} / ${total}…`,
     btnZipping: '正在打包…',
@@ -1892,7 +1892,11 @@ async function downloadCurrentLightboxPhoto() {
   }
 }
 
-async function generatePhotoCompositeBlob(p) {
+async function generatePhotoCompositeBlob(p, opts = {}) {
+  const mimeType = opts.mimeType || 'image/png';
+  const quality = opts.quality != null ? opts.quality : 0.92;
+  const maxImgW = opts.maxImgW || 1600;
+
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch(e) {}
   }
@@ -1910,7 +1914,6 @@ async function generatePhotoCompositeBlob(p) {
 
   // Layout
   const padding = 64;
-  const maxImgW = 1600;
   const captionFont = 'italic 32px "Playfair Display", "Noto Serif SC", Georgia, serif';
   const nameFont = 'italic 600 22px "Playfair Display", "Noto Serif SC", Georgia, serif';
   const captionLineH = 46;
@@ -2009,7 +2012,7 @@ async function generatePhotoCompositeBlob(p) {
     canvas.toBlob(blob => {
       if (!blob) reject(new Error('toBlob failed'));
       else resolve(blob);
-    }, 'image/png');
+    }, mimeType, quality);
   });
 }
 
@@ -2045,7 +2048,63 @@ function loadJSZip() {
 
 async function downloadAllPhotos() {
   if (!photos.length) { showToast(t('tPickPhoto'), true); return; }
+  // Prefer File System Access API (Chrome/Edge) — saves files one-by-one
+  // directly into a user-picked folder. Sidesteps the giant-blob limits
+  // that broke the zip approach for 100+ photos.
+  if (window.showDirectoryPicker) {
+    return downloadAllToFolder();
+  }
+  return downloadAllAsZip();
+}
 
+async function downloadAllToFolder() {
+  const btn = document.getElementById('downloadAllBtn');
+  const label = document.getElementById('downloadAllLabel');
+  const origLabel = label.textContent;
+
+  // 1. Ask the user to pick a folder
+  let dirHandle;
+  try {
+    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite', startIn: 'downloads' });
+  } catch (err) {
+    if (err && err.name === 'AbortError') return; // user cancelled — quiet
+    console.error('showDirectoryPicker', err);
+    showToast(t('tFailed'), true);
+    return;
+  }
+
+  // 2. Write each photo composite into the folder
+  btn.disabled = true;
+  const total = photos.length;
+  let saved = 0, failed = 0;
+  try {
+    for (let i = 0; i < total; i++) {
+      const p = photos[i];
+      label.textContent = t('btnGeneratingProgress', i + 1, total);
+      try {
+        const blob = await generatePhotoCompositeBlob(p);
+        const filename = `${String(i + 1).padStart(3, '0')}-${safeFilename(p.name)}.png`;
+        const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        saved++;
+      } catch (err) {
+        console.error('save failed for', p.id, err);
+        failed++;
+      }
+      // Yield to the browser every few iterations so the UI stays responsive
+      if (i % 5 === 4) await new Promise(r => setTimeout(r, 0));
+    }
+    showToast(t('tAllDownloaded', saved, failed));
+  } finally {
+    btn.disabled = false;
+    label.textContent = origLabel;
+  }
+}
+
+// Fallback for browsers without File System Access (Firefox, Safari)
+async function downloadAllAsZip() {
   const btn = document.getElementById('downloadAllBtn');
   const label = document.getElementById('downloadAllLabel');
   const origLabel = label.textContent;
@@ -2062,13 +2121,15 @@ async function downloadAllPhotos() {
       const p = photos[i];
       label.textContent = t('btnGeneratingProgress', i + 1, total);
       try {
-        const blob = await generatePhotoCompositeBlob(p);
-        const num = String(i + 1).padStart(2, '0');
-        zip.file(`${num}-${safeFilename(p.name)}.png`, blob);
+        // JPEG keeps memory footprint manageable for big batches
+        const blob = await generatePhotoCompositeBlob(p, { mimeType: 'image/jpeg', quality: 0.9, maxImgW: 1280 });
+        const num = String(i + 1).padStart(3, '0');
+        zip.file(`${num}-${safeFilename(p.name)}.jpg`, blob);
       } catch (err) {
         console.error('compose failed for', p.id, err);
         failed++;
       }
+      if (i % 5 === 4) await new Promise(r => setTimeout(r, 0));
     }
 
     label.textContent = t('btnZipping');
@@ -2081,12 +2142,11 @@ async function downloadAllPhotos() {
     a.download = `tao-farewell-photos-${date}.zip`;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 
     showToast(t('tAllDownloaded', total - failed, failed));
   } catch (err) {
-    console.error('downloadAllPhotos', err);
+    console.error('downloadAllAsZip', err);
     showToast(t('tFailed'), true);
   } finally {
     btn.disabled = false;
