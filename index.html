@@ -355,7 +355,7 @@
     transition: opacity 0.2s;
   }
   .photo-item:hover .photo-actions { opacity: 1; }
-  .photo-edit, .photo-del {
+  .photo-edit, .photo-del, .photo-download {
     width: 24px; height: 24px;
     background: rgba(0,0,0,0.55);
     border: 1px solid rgba(255,255,255,0.4);
@@ -370,8 +370,11 @@
     padding: 0;
     backdrop-filter: blur(4px);
   }
-  .photo-edit svg, .photo-hide svg { width: 11px; height: 11px; fill: #fff; }
+  .photo-edit svg, .photo-hide svg, .photo-download svg { width: 11px; height: 11px; fill: #fff; }
   .photo-edit:hover { background: var(--still-water); }
+  .photo-download:hover { background: var(--sol); }
+  .photo-download:hover svg { fill: var(--deep-galaxy); }
+  .photo-download:disabled { opacity: 0.5; cursor: not-allowed; }
   .photo-del:hover { background: #c0392b; }
   .photo-hide { /* shares base styles with .photo-edit, .photo-del above */ }
   .photo-hide:hover { background: var(--clear-skies); }
@@ -1234,6 +1237,7 @@ const I18N = {
     tGenerating: 'Generating image...',
     tDownloaded: 'Image saved to Downloads',
     actEdit: 'Edit',
+    actDownload: 'Save with caption',
     actHide: 'Hide from Present',
     actShow: 'Show in Present',
     actDelete: 'Delete',
@@ -1308,6 +1312,7 @@ const I18N = {
     tGenerating: '正在生成图片…',
     tDownloaded: '图片已保存到下载文件夹',
     actEdit: '编辑',
+    actDownload: '保存(含说明)',
     actHide: '从播放中隐藏',
     actShow: '在播放中显示',
     actDelete: '删除',
@@ -1503,6 +1508,9 @@ function renderPhotos() {
         <button class="photo-edit" title="${escapeHtml(t('actEdit'))}" data-id="${p.id}">
           <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
         </button>
+        <button class="photo-download" title="${escapeHtml(t('actDownload'))}" data-id="${p.id}">
+          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        </button>
         <button class="photo-hide ${p.hidden_from_present ? 'is-hidden' : ''}" title="${escapeHtml(t(p.hidden_from_present ? 'actShow' : 'actHide'))}" data-id="${p.id}">
           ${hideIcon}
         </button>
@@ -1513,6 +1521,14 @@ function renderPhotos() {
     item.querySelector('.photo-edit').addEventListener('click', e => {
       e.stopPropagation();
       openPhotoEditModal(p);
+    });
+    item.querySelector('.photo-download').addEventListener('click', async e => {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      try { await downloadPhotoComposite(p); }
+      catch (err) { console.error('downloadComposite', err); showToast(t('tFailed'), true); }
+      finally { btn.disabled = false; }
     });
     item.querySelector('.photo-hide').addEventListener('click', e => {
       e.stopPropagation();
